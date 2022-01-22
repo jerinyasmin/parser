@@ -1,0 +1,2801 @@
+comment_start,endline,file,comment_outer_start,method,startline,comment,comment_outer_satd,body,comment_inner_satd
+1,76,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/ChiSquaredDistributionImpl.java,68,ChiSquaredDistributionImpl,72,"
+     * Create a Chi-Squared distribution with the given degrees of freedom.
+     * @param degreesOfFreedom degrees of freedom.
+     ",,"{
+    super();
+    setGamma(DistributionFactory.newInstance().createGammaDistribution(degreesOfFreedom / 2.0, 2.0));
+}",
+1,84,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/ChiSquaredDistributionImpl.java,78,setDegreesOfFreedom,82,"
+     * Modify the degrees of freedom.
+     * @param degreesOfFreedom the new degrees of freedom.
+     ",,"{
+    getGamma().setAlpha(degreesOfFreedom / 2.0);
+}",
+89,92,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/ChiSquaredDistributionImpl.java,86,getDegreesOfFreedom,90,"
+     * Access the degrees of freedom.
+     * @return the degrees of freedom.
+     ",,"{
+    return getGamma().getAlpha() * 2.0;
+}",
+98,101,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/ChiSquaredDistributionImpl.java,94,cummulativeProbability,99,"
+     * For this disbution, X, this method returns P(X &lt; x).
+     * @param x the value at which the CDF is evaluated.
+     * @return CDF for this distribution. 
+     ",,"{
+    return getGamma().cummulativeProbability(x);
+}",
+98,114,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/ChiSquaredDistributionImpl.java,103,getDomainLowerBound,112,"
+     * Access the domain value lower bound, based on <code>p</code>, used to
+     * bracket a CDF root.  This method is used by
+     * {@link #inverseCummulativeProbability(double)} to find critical values.
+     * 
+     * @param p the desired probability for the critical value
+     * @return domain value lower bound, i.e.
+     *         P(X &lt; <i>lower bound</i>) &lt; <code>p</code> 
+     ",,"{
+    return Double.MIN_VALUE * getGamma().getBeta();
+}",
+118,140,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/ChiSquaredDistributionImpl.java,116,getDomainUpperBound,125,"
+     * Access the domain value upper bound, based on <code>p</code>, used to
+     * bracket a CDF root.  This method is used by
+     * {@link #inverseCummulativeProbability(double)} to find critical values.
+     * 
+     * @param p the desired probability for the critical value
+     * @return domain value upper bound, i.e.
+     *         P(X &lt; <i>upper bound</i>) &gt; <code>p</code> 
+     ",,"{
+    // NOTE: chi squared is skewed to the left
+    // NOTE: therefore, P(X < &mu;) > .5
+    double ret;
+    if (p < .5) {
+        // use mean
+        ret = getDegreesOfFreedom();
+    } else {
+        // use max
+        ret = Double.MAX_VALUE;
+    }
+    return ret;
+}",
+138,165,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/ChiSquaredDistributionImpl.java,142,getInitialDomain,150,"
+     * Access the initial domain value, based on <code>p</code>, used to
+     * bracket a CDF root.  This method is used by
+     * {@link #inverseCummulativeProbability(double)} to find critical values.
+     * 
+     * @param p the desired probability for the critical value
+     * @return initial domain value
+     ",,"{
+    // NOTE: chi squared is skewed to the left
+    // NOTE: therefore, P(X < &mu;) > .5
+    double ret;
+    if (p < .5) {
+        // use 1/2 mean
+        ret = getDegreesOfFreedom() * .5;
+    } else {
+        // use mean
+        ret = getDegreesOfFreedom();
+    }
+    return ret;
+}",
+154,173,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/ChiSquaredDistributionImpl.java,167,setGamma,171,"
+     * Modify the Gamma distribution.
+     * @param gamma the new distribution.
+     ",,"{
+    this.gamma = gamma;
+}",
+154,181,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/ChiSquaredDistributionImpl.java,175,getGamma,179,"
+     * Access the Gamma distribution.
+     * @return the internal Gamma distribution.
+     ",,"{
+    return gamma;
+}",
+1,81,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/GammaDistributionImpl.java,72,GammaDistributionImpl,77,"
+     * Create a new gamma distribution with the given alpha and beta values.
+     * @param alpha the shape parameter.
+     * @param beta the scale parameter.
+     ",,"{
+    super();
+    setAlpha(alpha);
+    setBeta(beta);
+}",
+98,112,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/GammaDistributionImpl.java,83,cummulativeProbability,102,"
+     * <p>
+     * For this disbution, X, this method returns P(X &lt; x).
+     * </p>
+     * 
+     * <p>
+     * The implementation of this method is based on:
+     * <ul>
+     * <li>
+     * <a href=""http://mathworld.wolfram.com/Chi-SquaredDistribution.html"">
+     * Chi-Squared Distribution</a>, equation (9).</li>
+     * <li>Casella, G., & Berger, R. (1990). <i>Statistical Inference</i>.
+     * Belmont, CA: Duxbury Press.</li>
+     * </ul>
+     * </p>
+     * 
+     * @param x the value at which the CDF is evaluated.
+     * @return CDF for this distribution. 
+     ",,"{
+    double ret;
+    if (x <= 0.0) {
+        ret = 0.0;
+    } else {
+        ret = Gamma.regularizedGammaP(getAlpha(), x / getBeta());
+    }
+    return ret;
+}",
+118,123,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/GammaDistributionImpl.java,114,setAlpha,118,"
+     * Modify the shape parameter, alpha.
+     * @param alpha the new shape parameter.
+     ",,"{
+    if (alpha <= 0.0) {
+        throw new IllegalArgumentException(""alpha must be positive"");
+    }
+    this.alpha = alpha;
+}",
+118,131,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/GammaDistributionImpl.java,125,getAlpha,129,"
+     * Access the shape parameter, alpha
+     * @return alpha.
+     ",,"{
+    return alpha;
+}",
+138,142,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/GammaDistributionImpl.java,133,setBeta,137,"
+     * Modify the scale parameter, beta.
+     * @param beta the new scale parameter.
+     ",,"{
+    if (beta <= 0.0) {
+        throw new IllegalArgumentException(""beta must be positive"");
+    }
+    this.beta = beta;
+}",
+138,150,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/GammaDistributionImpl.java,144,getBeta,148,"
+     * Access the scale parameter, beta
+     * @return beta.
+     ",,"{
+    return beta;
+}",
+154,164,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/GammaDistributionImpl.java,152,getDomainLowerBound,161,"
+     * Access the domain value lower bound, based on <code>p</code>, used to
+     * bracket a CDF root.  This method is used by
+     * {@link #inverseCummulativeProbability(double)} to find critical values.
+     * 
+     * @param p the desired probability for the critical value
+     * @return domain value lower bound, i.e.
+     *         P(X &lt; <i>lower bound</i>) &lt; <code>p</code> 
+     ",,"{
+    // TODO: try to improve on this estimate
+    return Double.MIN_VALUE;
+}","162_    // TODO: try to improve on this estimate
+"
+154,191,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/GammaDistributionImpl.java,166,getDomainUpperBound,175,"
+     * Access the domain value upper bound, based on <code>p</code>, used to
+     * bracket a CDF root.  This method is used by
+     * {@link #inverseCummulativeProbability(double)} to find critical values.
+     * 
+     * @param p the desired probability for the critical value
+     * @return domain value upper bound, i.e.
+     *         P(X &lt; <i>upper bound</i>) &gt; <code>p</code> 
+     ",,"{
+    // NOTE: gamma is skewed to the left
+    // NOTE: therefore, P(X < &mu;) > .5
+    // TODO: try to improve on this estimate
+    double ret;
+    if (p < .5) {
+        // use mean
+        ret = getAlpha() * getBeta();
+    } else {
+        // use max value
+        ret = Double.MAX_VALUE;
+    }
+    return ret;
+}","178_    // TODO: try to improve on this estimate
+"
+181,217,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/GammaDistributionImpl.java,193,getInitialDomain,201,"
+     * Access the initial domain value, based on <code>p</code>, used to
+     * bracket a CDF root.  This method is used by
+     * {@link #inverseCummulativeProbability(double)} to find critical values.
+     * 
+     * @param p the desired probability for the critical value
+     * @return initial domain value
+     ",,"{
+    // NOTE: gamma is skewed to the left
+    // NOTE: therefore, P(X < &mu;) > .5
+    // TODO: try to improve on this estimate
+    double ret;
+    if (p < .5) {
+        // use 1/2 mean
+        ret = getAlpha() * getBeta() * .5;
+    } else {
+        // use mean
+        ret = getAlpha() * getBeta();
+    }
+    return ret;
+}","204_    // TODO: try to improve on this estimate
+"
+1,21,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/ExponentialDistributionImpl.java,14,ExponentialDistributionImpl,18,"
+     * Create a exponential distribution with the given mean.
+     * @param degreesOfFreedom degrees of freedom.
+     ",,"{
+    super();
+    setMean(mean);
+}",
+1,32,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/ExponentialDistributionImpl.java,23,setMean,27,"
+     * Modify the mean.
+     * @param mean the new mean.
+     ",,"{
+    if (mean <= 0.0) {
+        throw new IllegalArgumentException(""mean must be positive."");
+    }
+    this.mean = mean;
+}",
+1,40,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/ExponentialDistributionImpl.java,34,getMean,38,"
+     * Access the mean.
+     * @return the mean.
+     ",,"{
+    return mean;
+}",
+1,67,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/ExponentialDistributionImpl.java,42,cummulativeProbability,59,"
+     * <p>
+     * For this disbution, X, this method returns P(X &lt; x).
+     * </p>
+     * 
+     * <p>
+     * The implementation of this method is based on:
+     * <ul>
+     * <li>
+     * <a href=""http://mathworld.wolfram.com/ExponentialDistribution.html"">
+     * Exponential Distribution</a>, equation (1).</li>
+     * </ul>
+     * </p>
+     * 
+     * @param x the value at which the CDF is evaluated.
+     * @return CDF for this distribution.
+     ",,"{
+    double ret;
+    if (x <= 0.0) {
+        ret = 0.0;
+    } else {
+        ret = 1.0 - Math.exp(-x / getMean());
+    }
+    return ret;
+}",
+1,88,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/ExponentialDistributionImpl.java,69,inverseCummulativeProbability,76,"
+     * For this distribution, X, this method returns the critical point x, such
+     * that P(X &lt; x) = <code>p</code>.
+     *
+     * @param p the desired probability
+     * @return x, such that P(X &lt; x) = <code>p</code>
+     ",,"{
+    double ret;
+    if (p < 0.0 || p > 1.0) {
+        ret = Double.NaN;
+    } else if (p == 1.0) {
+        ret = Double.POSITIVE_INFINITY;
+    } else {
+        ret = -getMean() * Math.log(1.0 - p);
+    }
+    return ret;
+}",
+92,98,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/distribution/ExponentialDistributionImpl.java,90,cummulativeProbability,96,"
+     * For this disbution, X, this method returns P(x0 &lt; X &lt; x1).
+     * @param x0 the lower bound
+     * @param x1 the upper bound
+     * @return the cummulative probability. 
+     ",,"{
+    return cummulativeProbability(x1) - cummulativeProbability(x0);
+}",
+98,107,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,103,RealMatrixImpl,106," 
+     * Creates a matrix with no data
+     ",,"{
+}",
+98,119,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,109,RealMatrixImpl,115,"
+     * Create a new RealMatrix with the supplied row and column dimensions.
+     *
+     * @param rowDimension      the number of rows in the new matrix
+     * @param columnDimension   the number of columns in the new matrix
+     ",,"{
+    data = new double[rowDimension][columnDimension];
+    lu = null;
+}",
+118,132,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,121,RealMatrixImpl,129,"
+     * Create a new RealMatrix using the <code>data</code> as the underlying
+     * data array.
+     * <p>
+     * The input array is copied, not referenced.
+     *
+     * @param d data for new matrix
+     ",,"{
+    this.copyIn(d);
+    lu = null;
+}",
+138,149,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,134,RealMatrixImpl,143,"
+     * Create a new (column) RealMatrix using <code>v</code> as the 
+     * data for the unique column of the <code>v.length x 1</code> matrix 
+     * created.
+     * <p>
+     * The input array is copied, not referenced.
+     *
+     * @param v column vector holding data for new matrix
+     ",,"{
+    int nRows = v.length;
+    data = new double[nRows][1];
+    for (int row = 0; row < nRows; row++) {
+        data[row][0] = v[row];
+    }
+}",
+154,158,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,151,copy,156,"
+     * Create a new RealMatrix which is a copy of this.
+     *
+     * @return  the cloned matrix
+     ",,"{
+    return new RealMatrixImpl(this.copyOut());
+}",
+154,182,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,160,add,167,"
+     * Compute the sum of this and <code>m</code>.
+     *
+     * @param m    matrix to be added
+     * @return     this + m
+     * @exception  IllegalArgumentException if m is not the same size as this
+     ",,"{
+    if (this.getColumnDimension() != m.getColumnDimension() || this.getRowDimension() != m.getRowDimension()) {
+        throw new IllegalArgumentException(""matrix dimension mismatch"");
+    }
+    int rowCount = this.getRowDimension();
+    int columnCount = this.getColumnDimension();
+    double[][] outData = new double[rowCount][columnCount];
+    double[][] mData = m.getData();
+    for (int row = 0; row < rowCount; row++) {
+        for (int col = 0; col < columnCount; col++) {
+            outData[row][col] = data[row][col] + mData[row][col];
+        }
+    }
+    return new RealMatrixImpl(outData);
+}",
+181,206,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,184,subtract,191,"
+     * Compute  this minus <code>m</code>.
+     *
+     * @param m    matrix to be subtracted
+     * @return     this + m
+     * @exception  IllegalArgumentException if m is not the same size as *this
+     ",,"{
+    if (this.getColumnDimension() != m.getColumnDimension() || this.getRowDimension() != m.getRowDimension()) {
+        throw new IllegalArgumentException(""matrix dimension mismatch"");
+    }
+    int rowCount = this.getRowDimension();
+    int columnCount = this.getColumnDimension();
+    double[][] outData = new double[rowCount][columnCount];
+    double[][] mData = m.getData();
+    for (int row = 0; row < rowCount; row++) {
+        for (int col = 0; col < columnCount; col++) {
+            outData[row][col] = data[row][col] - mData[row][col];
+        }
+    }
+    return new RealMatrixImpl(outData);
+}",
+209,216,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,208,getRank,213,"
+     * Returns the rank of the matrix.
+     *
+     * @return the rank of this matrix
+     ",,"{
+    // FIXME: need to add singular value decomposition or drop this
+    throw new UnsupportedOperationException(""not implemented yet"");
+}","214_    // FIXME: need to add singular value decomposition or drop this
+"
+226,235,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,219,scalarAdd,225,"
+     * Returns the result of adding d to each entry of this.
+     *
+     * @param d    value to be added to each entry
+     * @return     d + this
+     ",,"{
+    int rowCount = this.getRowDimension();
+    int columnCount = this.getColumnDimension();
+    double[][] outData = new double[rowCount][columnCount];
+    for (int row = 0; row < rowCount; row++) {
+        for (int col = 0; col < columnCount; col++) {
+            outData[row][col] = data[row][col] + d;
+        }
+    }
+    return new RealMatrixImpl(outData);
+}",
+226,252,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,237,scalarMultiply,242,"
+     * Returns the result multiplying each entry of this by <code>d</code>
+     * @param d  value to multiply all entries by
+     * @return d * this
+     ",,"{
+    int rowCount = this.getRowDimension();
+    int columnCount = this.getColumnDimension();
+    double[][] outData = new double[rowCount][columnCount];
+    for (int row = 0; row < rowCount; row++) {
+        for (int col = 0; col < columnCount; col++) {
+            outData[row][col] = data[row][col] * d;
+        }
+    }
+    return new RealMatrixImpl(outData);
+}",
+226,282,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,254,multiply,261,"
+     * Returns the result postmultiplying this by <code>m</code>.
+     * @param m    matrix to postmultiply by
+     * @return     this*m
+     * @throws     IllegalArgumentException
+     *             if columnDimension(this) != rowDimension(m)
+     ",,"{
+    if (this.getColumnDimension() != m.getRowDimension()) {
+        throw new IllegalArgumentException(""Matrices are not multiplication compatible."");
+    }
+    int nRows = this.getRowDimension();
+    int nCols = this.getColumnDimension();
+    double[][] mData = m.getData();
+    double[][] outData = new double[nRows][nCols];
+    double sum = 0;
+    for (int row = 0; row < nRows; row++) {
+        for (int col = 0; col < nCols; col++) {
+            sum = 0;
+            for (int i = 0; i < nCols; i++) {
+                sum += data[row][i] * mData[i][col];
+            }
+            outData[row][col] = sum;
+        }
+    }
+    return new RealMatrixImpl(outData);
+}",
+1,293,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,284,getData,291,"
+     * Returns matrix entries as a two-dimensional array.
+     * <p>
+     * Makes a fresh copy of the underlying data.
+     *
+     * @return    2-dimensional array of entries
+     ",,"{
+    return copyOut();
+}",
+1,304,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,295,setData,301,"
+     * Overwrites the underlying data for the matrix
+     * with a fresh copy of <code>inData</code>.
+     *
+     * @param  inData 2-dimensional array of entries
+     ",,"{
+    copyIn(inData);
+    lu = null;
+}",
+1,315,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,306,getDataRef,313,"
+     * Returns a reference to the underlying data array.
+     * <p>
+     * Does not make a fresh copy of the underlying data.
+     *
+     * @return 2-dimensional array of entries
+     ",,"{
+    return data;
+}",
+1,328,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,317,setDataRef,325,"
+     * Overwrites the underlying data for the matrix
+     * with a reference to <code>inData</code>.
+     * <p>
+     * Does not make a fresh copy of <code>data</code>.
+     *
+     * @param  inData 2-dimensional array of entries
+     ",,"{
+    this.data = inData;
+    lu = null;
+}",
+1,344,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,330,getNorm,334,"
+     *
+     * @return norm
+     ",,"{
+    double maxColSum = 0;
+    for (int col = 0; col < this.getColumnDimension(); col++) {
+        double sum = 0;
+        for (int row = 0; row < this.getRowDimension(); row++) {
+            sum += Math.abs(data[row][col]);
+        }
+        maxColSum = Math.max(maxColSum, sum);
+    }
+    return maxColSum;
+}",
+1,360,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,346,getRow,352,"
+     *
+     * @param row  the row to be fetched
+     * @return array of entries in the row
+     * @throws IllegalArgumentException if row > rowDimension or row < 1
+     ",,"{
+    if (row > this.getRowDimension() || row < 1) {
+        throw new IllegalArgumentException(""illegal row argument"");
+    }
+    int ncols = this.getColumnDimension();
+    double[] out = new double[ncols];
+    System.arraycopy(data[row - 1], 0, out, 0, ncols);
+    return out;
+}",
+1,378,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,362,getColumn,368,"
+     * @param col column to fetch
+     * @return array of entries in the column
+     * @throws IllegalArgumentException if column > columnDimension or
+     * column < 1
+     ",,"{
+    if (col > this.getColumnDimension() || col < 1) {
+        throw new IllegalArgumentException(""illegal column argument"");
+    }
+    int nRows = this.getRowDimension();
+    double[] out = new double[nRows];
+    for (int row = 0; row < nRows; row++) {
+        out[row] = data[row][col - 1];
+    }
+    return out;
+}",
+1,394,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,380,getEntry,386,"
+     * @param row  row location of entry to be fetched
+     * @param column  column location of entry to be fetched
+     * @return matrix entry in row,column
+     * @throws IllegalArgumentException if entry does not exist
+     ",,"{
+    if (row < 1 || column < 1 || row > this.getRowDimension() || column > this.getColumnDimension()) {
+        throw new IllegalArgumentException(""matrix entry does not exist"");
+    }
+    return data[row - 1][column - 1];
+}",
+1,411,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,396,setEntry,402,"
+     * @param row    row location of entry to be set
+     * @param column    column location of entry to be set
+     * @param value  value to set
+     * @throws IllegalArgumentException if entry does not exist
+     ",,"{
+    if (row < 1 || column < 1 || row > this.getRowDimension() || column > this.getColumnDimension()) {
+        throw new IllegalArgumentException(""matrix entry does not exist"");
+    }
+    data[row - 1][column - 1] = value;
+    lu = null;
+}",
+1,428,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,413,transpose,417,"
+     *
+     * @return transpose matrix
+     ",,"{
+    int nRows = this.getRowDimension();
+    int nCols = this.getColumnDimension();
+    RealMatrixImpl out = new RealMatrixImpl(nCols, nRows);
+    double[][] outData = out.getDataRef();
+    for (int row = 0; row < nRows; row++) {
+        for (int col = 0; col < nCols; col++) {
+            outData[col][row] = data[row][col];
+        }
+    }
+    return out;
+}",
+1,436,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,430,inverse,434,"
+     * @return inverse matrix
+     * @throws IllegalArgumentException if this is not invertible
+     ",,"{
+    return solve(getIdentity(this.getRowDimension()));
+}",
+1,455,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,438,getDeterminant,442,"
+     * @return determinant
+     * @throws IllegalArgumentException if matrix is not square
+     ",,"{
+    if (!isSquare()) {
+        throw new IllegalArgumentException(""matrix is not square"");
+    }
+    if (isSingular()) {
+        // note: this has side effect of attempting LU
+        // decomp if lu == null
+        return 0d;
+    } else {
+        double det = (double) parity;
+        for (int i = 0; i < this.getRowDimension(); i++) {
+            det *= lu[i][i];
+        }
+        return det;
+    }
+}",
+1,462,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,457,isSquare,460,"
+     * @return true if the matrix is square (rowDimension = columnDimension)
+     ",,"{
+    return (this.getColumnDimension() == this.getRowDimension());
+}",
+1,478,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,464,isSingular,467,"
+     * @return true if the matrix is singular
+     ",,"{
+    if (lu == null) {
+        try {
+            LUDecompose();
+            return false;
+        } catch (IllegalArgumentException ex) {
+            return true;
+        }
+    } else {
+        // LU decomp must have been successfully performed
+        // so the matrix is not singular
+        return false;
+    }
+}",
+1,485,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,480,getRowDimension,483,"
+     * @return rowDimension
+     ",,"{
+    return data.length;
+}",
+1,492,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,487,getColumnDimension,490,"
+     * @return columnDimension
+     ",,"{
+    return data[0].length;
+}",
+1,507,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,494,getTrace,498,"
+     * @return trace
+     * @throws IllegalArgumentException if the matrix is not square
+     ",,"{
+    if (!isSquare()) {
+        throw new IllegalArgumentException(""matrix is not square"");
+    }
+    double trace = data[0][0];
+    for (int i = 1; i < this.getRowDimension(); i++) {
+        trace += data[i][i];
+    }
+    return trace;
+}",
+1,529,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,509,operate,514,"
+     * @param v vector to operate on
+     * @throws IllegalArgumentException if columnDimension != v.length
+     * @return resulting vector
+     ",,"{
+    if (v.length != this.getColumnDimension()) {
+        throw new IllegalArgumentException(""vector has wrong length"");
+    }
+    int nRows = this.getRowDimension();
+    int nCols = this.getColumnDimension();
+    double[] out = new double[v.length];
+    for (int row = 0; row < nRows; row++) {
+        double sum = 0;
+        for (int i = 0; i < nCols; i++) {
+            sum += data[row][i] * v[i];
+        }
+        out[row] = sum;
+    }
+    return out;
+}",
+1,545,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,531,preMultiply,536,"
+     * @param v vector to premultiply by
+     * @throws IllegalArgumentException if rowDimension != v.length
+     * @return resulting matrix
+     ",,"{
+    int nCols = this.getColumnDimension();
+    if (v.length != nCols) {
+        throw new IllegalArgumentException(""vector has wrong length"");
+    }
+    // being a bit lazy here -- probably should implement directly, like
+    // operate
+    RealMatrix pm = new RealMatrixImpl(v).transpose();
+    return pm.multiply(this);
+}",
+1,566,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,547,solve,553,"
+     * @param b  constant vector
+     * @return   vector of solution values to AX = b, where A is this
+     * @throws   IllegalArgumentException if rowDimension != b.length or matrix
+     *           is singular
+     ",,"{
+    int nRows = this.getRowDimension();
+    if (b.length != nRows) {
+        throw new IllegalArgumentException(""constant vector has wrong length"");
+    }
+    RealMatrix bMatrix = new RealMatrixImpl(b);
+    double[][] solution = ((RealMatrixImpl) (solve(bMatrix))).getDataRef();
+    double[] out = new double[nRows];
+    for (int row = 0; row < nRows; row++) {
+        out[row] = solution[row][0];
+    }
+    return out;
+}",
+1,624,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,568,solve,578,"
+     * Uses LU decomposition, performing the composition if the matrix has
+     * not been decomposed, or if there have been changes to the matrix since
+     * the last decomposition.
+     *
+     * @param b the constant vector
+     * @return solution matrix
+     * @throws IllegalArgumentException if this is singular or dimensions
+     * do not match.
+     ",,"{
+    if (b.getRowDimension() != this.getRowDimension()) {
+        throw new IllegalArgumentException(""Incorrect row dimension"");
+    }
+    if (this.isSingular()) {
+        // side effect: compute LU decomp
+        throw new IllegalArgumentException(""Matrix is singular."");
+    }
+    int nCol = this.getColumnDimension();
+    int nRow = this.getRowDimension();
+    int nColB = b.getColumnDimension();
+    int nRowB = b.getRowDimension();
+    // Apply permutations to b
+    double[][] bv = b.getData();
+    double[][] bp = new double[nRowB][nColB];
+    for (int row = 0; row < nRowB; row++) {
+        for (int col = 0; col < nColB; col++) {
+            bp[row][col] = bv[pivot[row]][col];
+        }
+    }
+    bv = null;
+    // Solve LY = b
+    for (int col = 0; col < nCol; col++) {
+        for (int i = col + 1; i < nCol; i++) {
+            for (int j = 0; j < nColB; j++) {
+                bp[i][j] -= bp[col][j] * lu[i][col];
+            }
+        }
+    }
+    // Solve UX = Y
+    for (int col = nCol - 1; col >= 0; col--) {
+        for (int j = 0; j < nColB; j++) {
+            bp[col][j] /= lu[col][col];
+        }
+        for (int i = 0; i < col; i++) {
+            for (int j = 0; j < nColB; j++) {
+                bp[i][j] -= bp[col][j] * lu[i][col];
+            }
+        }
+    }
+    RealMatrixImpl outMat = new RealMatrixImpl(bp);
+    return outMat;
+}",
+1,713,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,626,LUDecompose,645,"
+     * Computes a new <a href=""http://www.math.gatech.edu/~bourbaki/
+     * math2601/Web-notes/2num.pdf"">LU decompostion</a> for this matrix,
+     * storing the result for use by other methods.
+     * <p>
+     * <strong>Implementation Note</strong>:<br>
+     * Uses <a href=""http://www.damtp.cam.ac.uk/user/fdl/
+     * people/sd/lectures/nummeth98/linear.htm"">Crout's algortithm</a>,
+     * with partial pivoting.
+     * <p>
+     * <strong>Usage Note</strong>:<br>
+     * This method should rarely be invoked directly. Its only use is
+     * to force recomputation of the LU decomposition when changes have been
+     * made to the underlying data using direct array references. Changes
+     * made using setXxx methods will trigger recomputation when needed
+     * automatically.
+     *
+     * @throws IllegalArgumentException if the matrix is singular
+     ","640_     * made using setXxx methods will trigger recomputation when needed
+","{
+    int nRows = this.getRowDimension();
+    int nCols = this.getColumnDimension();
+    lu = this.getData();
+    // Initialize pivot array and parity
+    pivot = new int[nRows];
+    for (int row = 0; row < nRows; row++) {
+        pivot[row] = row;
+    }
+    parity = 1;
+    // Loop over columns
+    for (int col = 0; col < nCols; col++) {
+        double sum = 0;
+        // upper
+        for (int row = 0; row < col; row++) {
+            sum = lu[row][col];
+            for (int i = 0; i < row; i++) {
+                sum -= lu[row][i] * lu[i][col];
+            }
+            lu[row][col] = sum;
+        }
+        // lower
+        // pivot row
+        int max = col;
+        double largest = 0d;
+        for (int row = col; row < nRows; row++) {
+            sum = lu[row][col];
+            for (int i = 0; i < col; i++) {
+                sum -= lu[row][i] * lu[i][col];
+            }
+            lu[row][col] = sum;
+            // maintain best pivot choice
+            if (Math.abs(sum) > largest) {
+                largest = Math.abs(sum);
+                max = row;
+            }
+        }
+        // Singularity check
+        if (Math.abs(lu[max][col]) < TOO_SMALL) {
+            lu = null;
+            throw new IllegalArgumentException(""matrix is singular"");
+        }
+        // Pivot if necessary
+        if (max != col) {
+            double tmp = 0;
+            for (int i = 0; i < nCols; i++) {
+                tmp = lu[max][i];
+                lu[max][i] = lu[col][i];
+                lu[col][i] = tmp;
+            }
+            int temp = pivot[max];
+            pivot[max] = pivot[col];
+            pivot[col] = temp;
+            parity = -parity;
+        }
+        // Divide the lower elements by the ""winning"" diagonal elt.
+        for (int row = col + 1; row < nRows; row++) {
+            lu[row][col] /= lu[col][col];
+        }
+    }
+}",
+1,732,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,717,getIdentity,723,"
+     * Returns <code>dimension x dimension</code> identity matrix.
+     *
+     * @param dimension dimension of identity matrix to generate
+     * @return identity matrix
+     ",,"{
+    RealMatrixImpl out = new RealMatrixImpl(dimension, dimension);
+    double[][] d = out.getDataRef();
+    for (int row = 0; row < dimension; row++) {
+        for (int col = 0; col < dimension; col++) {
+            d[row][col] = row == col ? 1d : 0d;
+        }
+    }
+    return out;
+}",
+1,750,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,736,copyOut,741,"
+     * Returns a fresh copy of the underlying data array.
+     *
+     * @return a copy of the underlying data array.
+     ",,"{
+    int nRows = this.getRowDimension();
+    double[][] out = new double[nRows][this.getColumnDimension()];
+    // can't copy 2-d array in one shot, otherwise get row references
+    for (int i = 0; i < nRows; i++) {
+        System.arraycopy(data[i], 0, out[i], 0, data[i].length);
+    }
+    return out;
+}",
+1,766,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/RealMatrixImpl.java,752,copyIn,757,"
+     * Replaces data with a fresh copy of the input array.
+     *
+     * @param in data to copy in
+     ",,"{
+    int nRows = in.length;
+    int nCols = in[0].length;
+    data = new double[nRows][nCols];
+    System.arraycopy(in, 0, data, 0, in.length);
+    for (int i = 0; i < nRows; i++) {
+        System.arraycopy(in[i], 0, data[i], 0, nCols);
+    }
+    lu = null;
+}",
+1,91,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/AbstractStoreUnivariate.java,65,getSkewness,69,"
+     * Returns the skewness of this collection of values
+     * @see org.apache.commons.math.stat.StoreUnivariate#getSkewness()
+     ",,"{
+    // Initialize the skewness
+    double skewness = Double.NaN;
+    // Get the mean and the standard deviation
+    double mean = getMean();
+    double stdDev = getStandardDeviation();
+    // Sum the cubes of the distance from the mean divided by the
+    // standard deviation
+    double accum = 0.0;
+    for (int i = 0; i < getN(); i++) {
+        accum += Math.pow((getElement(i) - mean) / stdDev, 3.0);
+    }
+    // Get N
+    double n = getN();
+    // Calculate skewness
+    skewness = (n / ((n - 1) * (n - 2))) * accum;
+    return skewness;
+}",
+98,122,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/AbstractStoreUnivariate.java,93,getKurtosis,97,"
+     * Returns the kurtosis for this collection of values
+     * @see org.apache.commons.math.stat.StoreUnivariate#getKurtosis()
+     ",,"{
+    // Initialize the kurtosis
+    double kurtosis = Double.NaN;
+    // Get the mean and the standard deviation
+    double mean = getMean();
+    double stdDev = getStandardDeviation();
+    // Sum the ^4 of the distance from the mean divided by the
+    // standard deviation
+    double accum = 0.0;
+    for (int i = 0; i < getN(); i++) {
+        accum += Math.pow((getElement(i) - mean) / stdDev, 4.0);
+    }
+    // Get N
+    double n = getN();
+    double coefficientOne = (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3));
+    double termTwo = ((3 * Math.pow(n - 1, 2.0)) / ((n - 2) * (n - 3)));
+    // Calculate kurtosis
+    kurtosis = (coefficientOne * accum) - termTwo;
+    return kurtosis;
+}",
+118,142,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/AbstractStoreUnivariate.java,124,getKurtosisClass,129,"
+     * Returns the type or class of kurtosis that this collection of 
+     * values exhibits
+     * @see org.apache.commons.math.stat.StoreUnivariate#getKurtosisClass()
+     ",,"{
+    int kClass = StoreUnivariate.MESOKURTIC;
+    double kurtosis = getKurtosis();
+    if (kurtosis > 0) {
+        kClass = StoreUnivariate.LEPTOKURTIC;
+    } else if (kurtosis < 0) {
+        kClass = StoreUnivariate.PLATYKURTIC;
+    }
+    return (kClass);
+}",
+138,151,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/AbstractStoreUnivariate.java,144,getMean,148,"
+     * Returns the mean for this collection of values
+     * @see org.apache.commons.math.stat.Univariate#getMean()
+     ",,"{
+    double arithMean = getSum() / getN();
+    return arithMean;
+}",
+154,160,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/AbstractStoreUnivariate.java,153,getGeometricMean,157,"
+     * Returns the geometric mean for this collection of values
+     * @see org.apache.commons.math.stat.Univariate#getGeometricMean()
+     ",,"{
+    double gMean = Math.pow(getProduct(), (1.0 / getN()));
+    return gMean;
+}",
+154,175,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/AbstractStoreUnivariate.java,162,getProduct,166,"
+     * Returns the product for this collection of values
+     * @see org.apache.commons.math.stat.Univariate#getProduct()
+     ",,"{
+    double product = Double.NaN;
+    if (getN() > 0) {
+        product = 1.0;
+        for (int i = 0; i < getN(); i++) {
+            product *= getElement(i);
+        }
+    }
+    return product;
+}",
+181,205,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/AbstractStoreUnivariate.java,178,getVariance,182,"
+     * Returns the variance for this collection of values
+     * @see org.apache.commons.math.stat.Univariate#getVariance()
+     ",,"{
+    // Initialize variance
+    double variance = Double.NaN;
+    if (getN() == 1) {
+        // If this is a single value
+        variance = 0;
+    } else if (getN() > 1) {
+        // Get the mean
+        double mean = getMean();
+        // Calculate the sum of the squares of the distance between each
+        // value and the mean
+        double accum = 0.0;
+        for (int i = 0; i < getN(); i++) {
+            accum += Math.pow((getElement(i) - mean), 2.0);
+        }
+        // Divide the accumulator by N - Hmmm... unbiased or biased?
+        variance = accum / (getN() - 1);
+    }
+    return variance;
+}",
+209,217,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/AbstractStoreUnivariate.java,207,getStandardDeviation,211,"
+     * Returns the standard deviation for this collection of values
+     * @see org.apache.commons.math.stat.Univariate#getStandardDeviation()
+     ",,"{
+    double stdDev = Double.NaN;
+    if (getN() != 0) {
+        stdDev = Math.sqrt(getVariance());
+    }
+    return (stdDev);
+}",
+209,239,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/AbstractStoreUnivariate.java,219,getMax,223,"
+     * Returns the maximum value contained herein.
+     * @see org.apache.commons.math.stat.Univariate#getMax()
+     ",,"{
+    // Initialize maximum to NaN
+    double max = Double.NaN;
+    for (int i = 0; i < getN(); i++) {
+        if (i == 0) {
+            max = getElement(i);
+        } else {
+            if (getElement(i) > max) {
+                max = getElement(i);
+            }
+        }
+    }
+    return max;
+}",
+226,260,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/AbstractStoreUnivariate.java,241,getMin,245,"
+     * Returns the minimum value contained herein
+     * @see org.apache.commons.math.stat.Univariate#getMin()
+     ",,"{
+    // Initialize minimum to NaN
+    double min = Double.NaN;
+    for (int i = 0; i < getN(); i++) {
+        if (i == 0) {
+            min = getElement(i);
+        } else {
+            if (getElement(i) < min) {
+                min = getElement(i);
+            }
+        }
+    }
+    return min;
+}",
+226,272,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/AbstractStoreUnivariate.java,262,getSum,266,"
+     * Returns the sum of all values contained herein
+     * @see org.apache.commons.math.stat.Univariate#getSum()
+     ",,"{
+    double accum = 0.0;
+    for (int i = 0; i < getN(); i++) {
+        accum += getElement(i);
+    }
+    return accum;
+}",
+226,284,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/AbstractStoreUnivariate.java,274,getSumsq,278,"
+     * Returns the sun of the squares of all values contained herein
+     * @see org.apache.commons.math.stat.Univariate#getSumsq()
+     ",,"{
+    double accum = 0.0;
+    for (int i = 0; i < getN(); i++) {
+        accum += Math.pow(getElement(i), 2.0);
+    }
+    return accum;
+}",
+1,313,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/AbstractStoreUnivariate.java,286,getSortedValues,292,"
+     * Uses <a href=""http://www.nist.gov/dads/HTML/shellsort.html"">Shell sort
+     * </a>
+     * @see org.apache.commons.math.stat.StoreUnivariate#getSortedValues()
+     *
+     ",,"{
+    double[] values = getValues();
+    int n = values.length;
+    int j = n;
+    while (j > 1) {
+        j = j / 2;
+        boolean done = false;
+        while (!done) {
+            done = true;
+            for (int i = 0; i < n - j; i++) {
+                int k = i + j;
+                if (values[i] > values[k]) {
+                    double temp = values[i];
+                    values[i] = values[k];
+                    values[k] = temp;
+                    done = false;
+                }
+            }
+        }
+    }
+    return values;
+}",
+1,344,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/AbstractStoreUnivariate.java,315,getPercentile,319,"
+     * Returns an estimate for the pth percentile of the stored values
+     * @see org.apache.commons.math.stat.StoreUnivariate#getPercentile(double)
+     ",,"{
+    if ((p > 100) || (p <= 0)) {
+        throw new IllegalArgumentException(""invalid percentile value"");
+    }
+    double n = (double) getN();
+    if (n == 0) {
+        return Double.NaN;
+    }
+    if (n == 1) {
+        // always return single value for n = 1
+        return getElement(0);
+    }
+    double pos = p * (n + 1) / 100;
+    double fpos = Math.floor(pos);
+    int intPos = (int) fpos;
+    double d = pos - fpos;
+    double[] sorted = getSortedValues();
+    if (pos < 1) {
+        return sorted[0];
+    }
+    if (pos > n) {
+        return sorted[getN() - 1];
+    }
+    double lower = sorted[intPos - 1];
+    double upper = sorted[intPos];
+    return lower + d * (upper - lower);
+}",
+1,76,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/StatUtils.java,65,sum,70,"
+     * The sum of the values that have been added to Univariate.
+     * @param values Is a double[] containing the values
+     * @return the sum of the values or Double.NaN if the array is empty
+     ",,"{
+    double accum = 0.0;
+    for (int i = 0; i < values.length; i++) {
+        accum += values[i];
+    }
+    return accum;
+}",
+1,89,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/StatUtils.java,78,sumSq,83,"
+     * Returns the sum of the squares of the available values.
+     * @param values Is a double[] containing the values
+     * @return the sum of the squared values or Double.NaN if the array is empty
+     ",,"{
+    double accum = 0.0;
+    for (int i = 0; i < values.length; i++) {
+        accum += Math.pow(values[i], 2.0);
+    }
+    return accum;
+}",
+92,105,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/StatUtils.java,91,product,96,"
+     * Returns the product for this collection of values
+     * @param values Is a double[] containing the values
+     * @return the product values or Double.NaN if the array is empty
+     ",,"{
+    double product = Double.NaN;
+    if (values.length > 0) {
+        product = 1.0;
+        for (int i = 0; i < values.length; i++) {
+            product *= values[i];
+        }
+    }
+    return product;
+}",
+98,121,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/StatUtils.java,107,sumLog,112,"
+     * Returns the sum of the natural logs for this collection of values
+     * @param values Is a double[] containing the values
+     * @return the sumLog value or Double.NaN if the array is empty
+     ",,"{
+    double sumLog = Double.NaN;
+    if (values.length > 0) {
+        sumLog = 0.0;
+        for (int i = 0; i < values.length; i++) {
+            sumLog += Math.log(values[i]);
+        }
+    }
+    return sumLog;
+}",
+118,131,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/StatUtils.java,123,geometricMean,129,"
+     * Returns the geometric mean for this collection of values
+     * @param values Is a double[] containing the values
+     * @return the geometric mean or Double.NaN if the array is empty or
+     * any of the values are &lt;= 0.
+     ",,"{
+    return Math.exp(sumLog(values) / (double) values.length);
+}",
+138,141,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/StatUtils.java,133,mean,139,"
+     * Returns the <a href=http://www.xycoon.com/arithmetic_mean.htm>
+     * arithmetic mean </a> of the available values 
+     * @param values Is a double[] containing the values
+     * @return the mean of the values or Double.NaN if the array is empty
+     ",,"{
+    return sum(values) / (double) values.length;
+}",
+138,155,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/StatUtils.java,143,standardDeviation,149,"
+     *      
+     * @param values Is a double[] containing the values
+     * @return the result, Double.NaN if no values for an empty array 
+     * or 0.0 for a single value set.  
+     ",,"{
+    double stdDev = Double.NaN;
+    if (values.length != 0) {
+        stdDev = Math.sqrt(variance(values));
+    }
+    return (stdDev);
+}",
+154,188,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/StatUtils.java,157,variance,170,"
+     * Returns the variance of the available values. This uses a corrected
+     * two pass algorithm of the following 
+     * <a href=""http://lib-www.lanl.gov/numerical/bookcpdf/c14-1.pdf"">
+     * corrected two pass formula (14.1.8)</a>, and also referenced in:<p/>
+     * ""Algorithms for Computing the Sample Variance: Analysis and
+     * Recommendations"", Chan, T.F., Golub, G.H., and LeVeque, R.J. 
+     * 1983, American Statistician, vol. 37, pp. 242?247.
+     * 
+     * @param values Is a double[] containing the values
+     * @return the result, Double.NaN if no values for an empty array 
+     * or 0.0 for a single value set.  
+     ",,"{
+    double variance = Double.NaN;
+    if (values.length == 1) {
+        variance = 0;
+    } else if (values.length > 1) {
+        double mean = mean(values);
+        double accum = 0.0;
+        double accum2 = 0.0;
+        for (int i = 0; i < values.length; i++) {
+            accum += Math.pow((values[i] - mean), 2.0);
+            accum2 += (values[i] - mean);
+        }
+        variance = (accum - (Math.pow(accum2, 2) / (double) values.length)) / (double) (values.length - 1);
+    }
+    return variance;
+}",
+181,218,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/StatUtils.java,190,skewness,196,"
+     * Returns the skewness of a collection of values.  Skewness is a 
+     * measure of the assymetry of a given distribution. 
+     * @param values Is a double[] containing the values
+     * @return the skewness of the values or Double.NaN if the array is empty
+     ",,"{
+    // Initialize the skewness
+    double skewness = Double.NaN;
+    // Get the mean and the standard deviation
+    double mean = mean(values);
+    double stdDev = standardDeviation(values);
+    // Sum the cubes of the distance from the mean divided by the
+    // standard deviation
+    double accum = 0.0;
+    for (int i = 0; i < values.length; i++) {
+        accum += Math.pow((values[i] - mean) / stdDev, 3.0);
+    }
+    // Get N
+    double n = values.length;
+    // Calculate skewness
+    skewness = (n / ((n - 1) * (n - 2))) * accum;
+    return skewness;
+}",
+226,250,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/StatUtils.java,220,kurtosis,226,"
+     * Returns the kurtosis for this collection of values. Kurtosis is a 
+     * measure of the ""peakedness"" of a distribution.
+     * @param values Is a double[] containing the values
+     * @return the kurtosis of the values or Double.NaN if the array is empty
+     ",,"{
+    // Initialize the kurtosis
+    double kurtosis = Double.NaN;
+    // Get the mean and the standard deviation
+    double mean = mean(values);
+    double stdDev = standardDeviation(values);
+    // Sum the ^4 of the distance from the mean divided by the
+    // standard deviation
+    double accum = 0.0;
+    for (int i = 0; i < values.length; i++) {
+        accum += Math.pow((values[i] - mean) / stdDev, 4.0);
+    }
+    // Get N
+    double n = values.length;
+    double coefficientOne = (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3));
+    double termTwo = ((3 * Math.pow(n - 1, 2.0)) / ((n - 2) * (n - 3)));
+    // Calculate kurtosis
+    kurtosis = (coefficientOne * accum) - termTwo;
+    return kurtosis;
+}",
+226,267,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/StatUtils.java,252,max,257,"
+     * Returns the maximum of the available values
+     * @param values Is a double[] containing the values
+     * @return the maximum of the values or Double.NaN if the array is empty
+     ",,"{
+    double max = Double.NaN;
+    for (int i = 0; i < values.length; i++) {
+        if (i == 0) {
+            max = values[i];
+        } else {
+            max = Math.max(max, values[i]);
+        }
+    }
+    return max;
+}",
+226,284,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/java/org/apache/commons/math/stat/StatUtils.java,269,min,274,"
+     * Returns the minimum of the available values
+     * @param values Is a double[] containing the values
+     * @return the minimum of the values or Double.NaN if the array is empty
+     ",,"{
+    double min = Double.NaN;
+    for (int i = 0; i < values.length; i++) {
+        if (i == 0) {
+            min = values[i];
+        } else {
+            min = Math.min(min, values[i]);
+        }
+    }
+    return min;
+}",
+1,66,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/ExpandableDoubleArrayTest.java,,ExpandableDoubleArrayTest,64,,,"{
+    super(name);
+}",
+1,74,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/ExpandableDoubleArrayTest.java,68,setUp,71," (non-Javadoc)
+	 * @see junit.framework.TestCase#setUp()
+	 ",,"{
+    da = new ExpandableDoubleArray();
+    ra = new ExpandableDoubleArray();
+}",
+1,82,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/ExpandableDoubleArrayTest.java,76,tearDown,79," (non-Javadoc)
+	 * @see junit.framework.TestCase#tearDown()
+	 ",,"{
+    da = null;
+    ra = null;
+}",
+89,108,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/ExpandableDoubleArrayTest.java,,testSetElementArbitraryExpansion,89,,,"{
+    double[] controlArray = { 2.0, 4.0, 6.0 };
+    da.addElement(2.0);
+    da.addElement(4.0);
+    da.addElement(6.0);
+    da.setElement(1, 3.0);
+    // Expand the array arbitrarily to 1000 items
+    da.setElement(1000, 3.4);
+    assertEquals(""The number of elements should now be 1001, it isn't"", da.getNumElements(), 1001);
+    assertEquals(""Uninitialized Elements are default value of 0.0, index 766 wasn't"", 0.0, da.getElement(760), Double.MIN_VALUE);
+    assertEquals(""The 1000th index should be 3.4, it isn't"", 3.4, da.getElement(1000), Double.MIN_VALUE);
+    assertEquals(""The 0th index should be 2.0, it isn't"", 2.0, da.getElement(0), Double.MIN_VALUE);
+}",
+98,115,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/ExpandableDoubleArrayTest.java,,testAdd1000,110,,,"{
+    super.testAdd1000();
+    assertEquals(""Internal Storage length should be 1024 if we started out with initial capacity of "" + ""16 and an expansion factor of 2.0"", 1024, ((ExpandableDoubleArray) da).getInternalLength());
+}",
+118,119,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/ExpandableDoubleArrayTest.java,,testAddElementRolling,117,,,"{
+    super.testAddElementRolling();
+}",
+118,143,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/ExpandableDoubleArrayTest.java,,testSetNumberOfElements,121,,,"{
+    da.addElement(1.0);
+    da.addElement(1.0);
+    da.addElement(1.0);
+    da.addElement(1.0);
+    da.addElement(1.0);
+    da.addElement(1.0);
+    assertEquals(""Number of elements should equal 6"", da.getNumElements(), 6);
+    ((ExpandableDoubleArray) da).setNumElements(3);
+    assertEquals(""Number of elements should equal 3"", da.getNumElements(), 3);
+    try {
+        ((ExpandableDoubleArray) da).setNumElements(-3);
+        fail(""Setting number of elements to negative should've thrown an exception"");
+    } catch (IllegalArgumentException iae) {
+    }
+    ((ExpandableDoubleArray) da).setNumElements(1024);
+    assertEquals(""Number of elements should now be 1024"", da.getNumElements(), 1024);
+    assertEquals(""Element 453 should be a default double"", da.getElement(453), 0.0, Double.MIN_VALUE);
+}",
+138,164,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/ExpandableDoubleArrayTest.java,,testWithInitialCapacity,147,,,"{
+    ExpandableDoubleArray eDA2 = new ExpandableDoubleArray(2);
+    assertEquals(""Initial number of elements should be 0"", 0, eDA2.getNumElements());
+    int iterations = (int) Math.pow(2.0, 15.0);
+    for (int i = 0; i < iterations; i++) {
+        eDA2.addElement(i);
+    }
+    assertEquals(""Number of elements should be equal to 2^15"", (int) Math.pow(2.0, 15.0), eDA2.getNumElements());
+    eDA2.addElement(2.0);
+    assertEquals(""Number of elements should be equals to 2^15 + 1"", ((int) Math.pow(2.0, 15.0) + 1), eDA2.getNumElements());
+}",
+154,185,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/ExpandableDoubleArrayTest.java,,testWithInitialCapacityAndExpansionFactor,166,,,"{
+    ExpandableDoubleArray eDA3 = new ExpandableDoubleArray(3, 3.0f);
+    assertEquals(""Initial number of elements should be 0"", 0, eDA3.getNumElements());
+    int iterations = (int) Math.pow(3.0, 7.0);
+    for (int i = 0; i < iterations; i++) {
+        eDA3.addElement(i);
+    }
+    assertEquals(""Number of elements should be equal to 3^7"", (int) Math.pow(3.0, 7.0), eDA3.getNumElements());
+    eDA3.addElement(2.0);
+    assertEquals(""Number of elements should be equals to 3^7 + 1"", ((int) Math.pow(3.0, 7.0) + 1), eDA3.getNumElements());
+    assertEquals(""Expansion factor should equal 3.0"", 3.0f, eDA3.getExpansionFactor(), Double.MIN_VALUE);
+}",
+181,216,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/ExpandableDoubleArrayTest.java,,testDiscard,187,,,"{
+    da.addElement(2.0);
+    da.addElement(2.0);
+    da.addElement(2.0);
+    da.addElement(2.0);
+    da.addElement(2.0);
+    da.addElement(2.0);
+    da.addElement(2.0);
+    da.addElement(2.0);
+    da.addElement(2.0);
+    da.addElement(2.0);
+    da.addElement(2.0);
+    assertEquals(""Number of elements should be 11"", 11, da.getNumElements());
+    da.discardFrontElements(5);
+    assertEquals(""Number of elements should be 6"", 6, da.getNumElements());
+    try {
+        da.discardFrontElements(-1);
+        fail(""Trying to discard a negative number of element is not allowed"");
+    } catch (Exception e) {
+    }
+    try {
+        da.discardFrontElements(10000);
+        fail(""You can't discard more elements than the array contains"");
+    } catch (Exception e) {
+    }
+}",
+209,235,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/ExpandableDoubleArrayTest.java,,testIllegalInitialCapacity,220,,,"{
+    try {
+        ExpandableDoubleArray eDA = new ExpandableDoubleArray(-3, 2.0f);
+        fail(""That constructor should have thrown an IllegalArgumentException because "" + ""the initialCapacity was negative, if it didn't then"" + "" the range checking of initialCapacity is not working properly"");
+    } catch (IllegalArgumentException iae) {
+    }
+    try {
+        ExpandableDoubleArray eDA = new ExpandableDoubleArray(0, 2.0f);
+        fail(""That constructor should have thrown an IllegalArgumentException because "" + ""the initialCapacity was ZERO if it didn't then"" + "" the range checking of initialCapacity is not working properly"");
+    } catch (IllegalArgumentException iae) {
+    }
+}",
+226,257,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/ExpandableDoubleArrayTest.java,,testIllegalExpansionFactor,237,,,"{
+    try {
+        ExpandableDoubleArray eDA = new ExpandableDoubleArray(3, 0.66f);
+        fail(""That constructor should have thrown an IllegalArgumentException because "" + ""the expansionFactor for 0.66 which would shrink the array instead of expand the array"");
+    } catch (IllegalArgumentException iae) {
+    }
+    try {
+        ExpandableDoubleArray eDA = new ExpandableDoubleArray(3, 0.0f);
+        fail(""That constructor should have thrown an IllegalArgumentException because "" + ""the expansionFactor for 0.0"");
+    } catch (IllegalArgumentException iae) {
+    }
+    try {
+        ExpandableDoubleArray eDA = new ExpandableDoubleArray(3, -4.35f);
+        fail(""That constructor should have thrown an IllegalArgumentException because "" + ""the expansionFactor for -4.35"");
+    } catch (IllegalArgumentException iae) {
+    }
+}",
+226,265,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/ExpandableDoubleArrayTest.java,,testSetOutOfBounds,259,,,"{
+    try {
+        da.setElement(-1, 2.0);
+        fail(""Cannot set a negative index"");
+    } catch (Exception e) {
+    }
+}",
+226,279,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/ExpandableDoubleArrayTest.java,,testGetOutOfBounds,267,,,"{
+    try {
+        da.getElement(10000);
+        fail(""Cannot get an element that is larger than the number of elements"");
+    } catch (Exception e) {
+    }
+    try {
+        da.getElement(-3);
+        fail(""Cannot get a negative index"");
+    } catch (Exception e) {
+    }
+}",
+1,79,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RandomDataTest.java,,RandomDataTest,77,,,"{
+    super(name);
+}",
+92,92,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RandomDataTest.java,,setUp,91,,,"{
+}",
+92,98,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RandomDataTest.java,,suite,94,,,"{
+    TestSuite suite = new TestSuite(RandomDataTest.class);
+    suite.setName(""RandomData Tests"");
+    return suite;
+}",
+98,126,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RandomDataTest.java,100,testNextInt,101, test dispersion and failure modes for nextInt() ,,"{
+    try {
+        int x = randomData.nextInt(4, 3);
+        fail(""IllegalArgumentException expected"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    Freq freq = new Freq();
+    int value = 0;
+    for (int i = 0; i < smallSampleSize; i++) {
+        value = randomData.nextInt(0, 3);
+        assertTrue(""nextInt range"", (value >= 0) && (value <= 3));
+        freq.addValue(value);
+    }
+    double[] observed = new double[4];
+    for (int i = 0; i < 4; i++) {
+        String iString = new Integer(i).toString();
+        observed[i] = freq.getCount(iString);
+    }
+    /* Use ChiSquare dist with df = 4-1 = 3, alpha = .001
+         * Change to 11.34 for alpha = .01
+         */
+    assertTrue(""chi-square test -- will fail about 1 in 1000 times"", testStatistic.chiSquare(expected, observed) < 16.27);
+}",
+118,154,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RandomDataTest.java,128,testNextLong,129, test dispersion and failure modes for nextLong() ,,"{
+    try {
+        long x = randomData.nextLong(4, 3);
+        fail(""IllegalArgumentException expected"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    Freq freq = new Freq();
+    long value = 0;
+    for (int i = 0; i < smallSampleSize; i++) {
+        value = randomData.nextLong(0, 3);
+        assertTrue(""nextInt range"", (value >= 0) && (value <= 3));
+        freq.addValue(value);
+    }
+    double[] observed = new double[4];
+    for (int i = 0; i < 4; i++) {
+        String iString = new Integer(i).toString();
+        observed[i] = freq.getCount(iString);
+    }
+    /* Use ChiSquare dist with df = 4-1 = 3, alpha = .001
+         * Change to 11.34 for alpha = .01
+         */
+    assertTrue(""chi-square test -- will fail about 1 in 1000 times"", testStatistic.chiSquare(expected, observed) < 16.27);
+}",
+154,182,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RandomDataTest.java,156,testNextSecureLong,157, test dispersion and failure modes for nextSecureLong() ,,"{
+    try {
+        long x = randomData.nextSecureLong(4, 3);
+        fail(""IllegalArgumentException expected"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    Freq freq = new Freq();
+    long value = 0;
+    for (int i = 0; i < smallSampleSize; i++) {
+        value = randomData.nextSecureLong(0, 3);
+        assertTrue(""nextInt range"", (value >= 0) && (value <= 3));
+        freq.addValue(value);
+    }
+    double[] observed = new double[4];
+    for (int i = 0; i < 4; i++) {
+        String iString = new Integer(i).toString();
+        observed[i] = freq.getCount(iString);
+    }
+    /* Use ChiSquare dist with df = 4-1 = 3, alpha = .001
+         * Change to 11.34 for alpha = .01
+         */
+    assertTrue(""chi-square test -- will fail about 1 in 1000 times"", testStatistic.chiSquare(expected, observed) < 16.27);
+}",
+181,210,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RandomDataTest.java,184,testNextSecureInt,185, test dispersion and failure modes for nextSecureInt() ,,"{
+    try {
+        long x = randomData.nextSecureInt(4, 3);
+        fail(""IllegalArgumentException expected"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    Freq freq = new Freq();
+    int value = 0;
+    for (int i = 0; i < smallSampleSize; i++) {
+        value = randomData.nextSecureInt(0, 3);
+        assertTrue(""nextInt range"", (value >= 0) && (value <= 3));
+        freq.addValue(value);
+    }
+    double[] observed = new double[4];
+    for (int i = 0; i < 4; i++) {
+        String iString = new Integer(i).toString();
+        observed[i] = freq.getCount(iString);
+    }
+    /* Use ChiSquare dist with df = 4-1 = 3, alpha = .001
+         * Change to 11.34 for alpha = .01
+         */
+    assertTrue(""chi-square test -- will fail about 1 in 1000 times"", testStatistic.chiSquare(expected, observed) < 16.27);
+}",
+209,253,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RandomDataTest.java,212,testNextPoisson,218," 
+     * Make sure that empirical distribution of random Poisson(4)'s 
+     * has P(X <= 5) close to actual cumulative Poisson probablity
+     * and that nextPoisson fails when mean is non-positive
+     * TODO: replace with statistical test, adding test stat to TestStatistic
+     ","216_     * TODO: replace with statistical test, adding test stat to TestStatistic
+","{
+    try {
+        long x = randomData.nextPoisson(0);
+        fail(""zero mean -- expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    Freq f = new Freq();
+    long v = 0;
+    for (int i = 0; i < largeSampleSize; i++) {
+        try {
+            f.addValue(randomData.nextPoisson(4.0d));
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+    }
+    long cumFreq = f.getCount(""0"") + f.getCount(""1"") + f.getCount(""2"") + f.getCount(""3"") + f.getCount(""4"") + f.getCount(""5"");
+    long sumFreq = f.getSumFreq();
+    double cumPct = new Double(cumFreq).doubleValue() / new Double(sumFreq).doubleValue();
+    assertEquals(""cum Poisson(4)"", cumPct, 0.7851, 0.2);
+    try {
+        long x = randomData.nextPoisson(-1);
+        fail(""negative mean supplied -- IllegalArgumentException expected"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    try {
+        long x = randomData.nextPoisson(0);
+        fail(""0 mean supplied -- IllegalArgumentException expected"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+}",
+226,307,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RandomDataTest.java,255,testNextHex,256, test dispersion and failute modes for nextHex() ,,"{
+    try {
+        String x = randomData.nextHexString(-1);
+        fail(""negative length supplied -- IllegalArgumentException expected"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    try {
+        String x = randomData.nextHexString(0);
+        fail(""zero length supplied -- IllegalArgumentException expected"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    String hexString = randomData.nextHexString(3);
+    if (hexString.length() != 3) {
+        fail(""incorrect length for generated string"");
+    }
+    hexString = randomData.nextHexString(1);
+    if (hexString.length() != 1) {
+        fail(""incorrect length for generated string"");
+    }
+    try {
+        hexString = randomData.nextHexString(0);
+        fail(""zero length requested -- expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    if (hexString.length() != 1) {
+        fail(""incorrect length for generated string"");
+    }
+    Freq f = new Freq();
+    for (int i = 0; i < smallSampleSize; i++) {
+        hexString = randomData.nextHexString(100);
+        if (hexString.length() != 100) {
+            fail(""incorrect length for generated string"");
+        }
+        for (int j = 0; j < hexString.length(); j++) {
+            f.addValue(hexString.substring(j, j + 1));
+        }
+    }
+    double[] expected = new double[16];
+    double[] observed = new double[16];
+    for (int i = 0; i < 16; i++) {
+        expected[i] = (double) smallSampleSize * 100 / (double) 16;
+        observed[i] = f.getCount(hex[i]);
+    }
+    /* Use ChiSquare dist with df = 16-1 = 15, alpha = .001
+         * Change to 30.58 for alpha = .01
+         */
+    assertTrue(""chi-square test -- will fail about 1 in 1000 times"", testStatistic.chiSquare(expected, observed) < 37.70);
+}",
+1,361,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RandomDataTest.java,309,testNextSecureHex,310, test dispersion and failute modes for nextHex() ,,"{
+    try {
+        String x = randomData.nextSecureHexString(-1);
+        fail(""negative length -- IllegalArgumentException expected"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    try {
+        String x = randomData.nextSecureHexString(0);
+        fail(""zero length -- IllegalArgumentException expected"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    String hexString = randomData.nextSecureHexString(3);
+    if (hexString.length() != 3) {
+        fail(""incorrect length for generated string"");
+    }
+    hexString = randomData.nextSecureHexString(1);
+    if (hexString.length() != 1) {
+        fail(""incorrect length for generated string"");
+    }
+    try {
+        hexString = randomData.nextSecureHexString(0);
+        fail(""zero length requested -- expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    if (hexString.length() != 1) {
+        fail(""incorrect length for generated string"");
+    }
+    Freq f = new Freq();
+    for (int i = 0; i < smallSampleSize; i++) {
+        hexString = randomData.nextSecureHexString(100);
+        if (hexString.length() != 100) {
+            fail(""incorrect length for generated string"");
+        }
+        for (int j = 0; j < hexString.length(); j++) {
+            f.addValue(hexString.substring(j, j + 1));
+        }
+    }
+    double[] expected = new double[16];
+    double[] observed = new double[16];
+    for (int i = 0; i < 16; i++) {
+        expected[i] = (double) smallSampleSize * 100 / (double) 16;
+        observed[i] = f.getCount(hex[i]);
+    }
+    /* Use ChiSquare dist with df = 16-1 = 15, alpha = .001
+         * Change to 30.58 for alpha = .01
+         */
+    assertTrue(""chi-square test -- will fail about 1 in 1000 times"", testStatistic.chiSquare(expected, observed) < 37.70);
+}",
+1,399,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RandomDataTest.java,363,testNextUniform,364, test failure modes and dispersion of nextUniform() ,,"{
+    try {
+        double x = randomData.nextUniform(4, 3);
+        fail(""IllegalArgumentException expected"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    try {
+        double x = randomData.nextUniform(3, 3);
+        fail(""IllegalArgumentException expected"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    double[] expected = new double[] { 500, 500 };
+    double[] observed = new double[] { 0, 0 };
+    double lower = -1d;
+    double upper = 20d;
+    double midpoint = (lower + upper) / 2d;
+    double result = 0;
+    for (int i = 0; i < 1000; i++) {
+        result = randomData.nextUniform(lower, upper);
+        if ((result == lower) || (result == upper)) {
+            fail(""generated value equal to an endpoint: "" + result);
+        }
+        if (result < midpoint) {
+            observed[0]++;
+        } else {
+            observed[1]++;
+        }
+    }
+    /* Use ChiSquare dist with df = 2-1 = 1, alpha = .001
+         * Change to 6.64 for alpha = .01
+         */
+    assertTrue(""chi-square test -- will fail about 1 in 1000 times"", testStatistic.chiSquare(expected, observed) < 10.83);
+}",
+1,420,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RandomDataTest.java,401,testNextGaussian,402, test failure modes and distribution of nextGaussian() ,,"{
+    try {
+        double x = randomData.nextGaussian(0, 0);
+        fail(""zero sigma -- IllegalArgumentException expected"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    Univariate u = new UnivariateImpl();
+    for (int i = 0; i < largeSampleSize; i++) {
+        u.addValue(randomData.nextGaussian(0, 1));
+    }
+    double xbar = u.getMean();
+    double s = u.getStandardDeviation();
+    double n = (double) u.getN();
+    /* t-test at .001-level TODO: replace with externalized t-test, with
+         * test statistic defined in TestStatistic
+         */
+    assertTrue(Math.abs(xbar) / (s / Math.sqrt(n)) < 3.29);
+}","416_    /* t-test at .001-level TODO: replace with externalized t-test, with
+"
+1,444,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RandomDataTest.java,422,testNextExponential,423, test failure modes and distribution of nextExponential() ,,"{
+    try {
+        double x = randomData.nextExponential(-1);
+        fail(""negative mean -- expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    assertEquals(""0 mean"", 0, randomData.nextExponential(0), 10E-8);
+    long cumFreq = 0;
+    double v = 0;
+    for (int i = 0; i < largeSampleSize; i++) {
+        v = randomData.nextExponential(1);
+        assertTrue(""exponential deviate postive"", v > 0);
+        if (v < 2)
+            cumFreq++;
+    }
+    /* TODO: Replace with a statistical test, with statistic added to
+         * TestStatistic.  Check below compares observed cumulative distribution
+         * evaluated at 2 with exponential CDF 
+         */
+    assertEquals(""exponential cumulative distribution"", (double) cumFreq / (double) largeSampleSize, 0.8646647167633873, .2);
+}","439_    /* TODO: Replace with a statistical test, with statistic added to
+"
+1,498,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RandomDataTest.java,446,testConfig,447," test reseeding, algorithm/provider games ",,"{
+    randomData.reSeed(1000);
+    double v = randomData.nextUniform(0, 1);
+    randomData.reSeed();
+    assertTrue(""different seeds"", Math.abs(v - randomData.nextUniform(0, 1)) > 10E-12);
+    randomData.reSeed(1000);
+    assertEquals(""same seeds"", v, randomData.nextUniform(0, 1), 10E-12);
+    randomData.reSeedSecure(1000);
+    String hex = randomData.nextSecureHexString(40);
+    randomData.reSeedSecure();
+    assertTrue(""different seeds"", !hex.equals(randomData.nextSecureHexString(40)));
+    randomData.reSeedSecure(1000);
+    assertTrue(""same seeds"", !hex.equals(randomData.nextSecureHexString(40)));
+    /* remove this test back soon,
+         * since it takes about 4 seconds */
+    randomData.setSecureAlgorithm(""SHA1PRNG"", ""SUN"");
+    assertTrue(""different seeds"", !hex.equals(randomData.nextSecureHexString(40)));
+    try {
+        randomData.setSecureAlgorithm(""NOSUCHTHING"", ""SUN"");
+        fail(""expecting NoSuchAlgorithmException"");
+    } catch (NoSuchAlgorithmException ex) {
+        ;
+    }
+    try {
+        randomData.setSecureAlgorithm(""SHA1PRNG"", ""NOSUCHPROVIDER"");
+        fail(""expecting NoSuchProviderException"");
+    } catch (NoSuchProviderException ex) {
+        ;
+    }
+    // test reseeding without first using the generators
+    RandomDataImpl rd = new RandomDataImpl();
+    rd.reSeed(100);
+    double ret = rd.nextLong(1, 2);
+    RandomDataImpl rd2 = new RandomDataImpl();
+    rd2.reSeedSecure(2000);
+    ret = rd2.nextSecureLong(1, 2);
+    rd = new RandomDataImpl();
+    rd.reSeed();
+    ret = rd.nextLong(1, 2);
+    rd2 = new RandomDataImpl();
+    rd2.reSeedSecure();
+    ret = rd2.nextSecureLong(1, 2);
+}",
+1,556,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RandomDataTest.java,500,testNextSample,501, tests for nextSample() sampling from Collection ,,"{
+    Object[][] c = { { ""0"", ""1"" }, { ""0"", ""2"" }, { ""0"", ""3"" }, { ""0"", ""4"" }, { ""1"", ""2"" }, { ""1"", ""3"" }, { ""1"", ""4"" }, { ""2"", ""3"" }, { ""2"", ""4"" }, { ""3"", ""4"" } };
+    double[] observed = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    double[] expected = { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 };
+    // {0,1,2,3,4}
+    HashSet cPop = new HashSet();
+    for (int i = 0; i < 5; i++) {
+        cPop.add(Integer.toString(i));
+    }
+    // 2-sets from 5
+    Object[] sets = new Object[10];
+    for (int i = 0; i < 10; i++) {
+        HashSet hs = new HashSet();
+        hs.add(c[i][0]);
+        hs.add(c[i][1]);
+        sets[i] = hs;
+    }
+    for (int i = 0; i < 1000; i++) {
+        Object[] cSamp = randomData.nextSample(cPop, 2);
+        observed[findSample(sets, cSamp)]++;
+    }
+    /* Use ChiSquare dist with df = 10-1 = 9, alpha = .001
+         * Change to 21.67 for alpha = .01
+         */
+    assertTrue(""chi-square test -- will fail about 1 in 1000 times"", testStatistic.chiSquare(expected, observed) < 27.88);
+    // Make sure sample of size = size of collection returns same collection
+    HashSet hs = new HashSet();
+    hs.add(""one"");
+    Object[] one = randomData.nextSample(hs, 1);
+    String oneString = (String) one[0];
+    if ((one.length != 1) || !oneString.equals(""one"")) {
+        fail(""bad sample for set size = 1, sample size = 1"");
+    }
+    // Make sure we fail for sample size > collection size
+    try {
+        one = randomData.nextSample(hs, 2);
+        fail(""sample size > set size, expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    // Make sure we fail for empty collection
+    try {
+        hs = new HashSet();
+        one = randomData.nextSample(hs, 0);
+        fail(""n = k = 0, expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+}",
+1,572,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RandomDataTest.java,,findSample,558,,,"{
+    int result = -1;
+    for (int i = 0; i < u.length; i++) {
+        HashSet set = (HashSet) u[i];
+        HashSet sampSet = new HashSet();
+        for (int j = 0; j < samp.length; j++) {
+            sampSet.add(samp[j]);
+        }
+        if (set.equals(sampSet)) {
+            return i;
+        }
+    }
+    fail(""sample not found:{"" + samp[0] + "","" + samp[1] + ""}"");
+    return -1;
+}",
+1,615,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RandomDataTest.java,574,testNextPermutation,575, tests for nextPermutation ,,"{
+    int[][] p = { { 0, 1, 2 }, { 0, 2, 1 }, { 1, 0, 2 }, { 1, 2, 0 }, { 2, 0, 1 }, { 2, 1, 0 } };
+    double[] observed = { 0, 0, 0, 0, 0, 0 };
+    double[] expected = { 100, 100, 100, 100, 100, 100 };
+    for (int i = 0; i < 600; i++) {
+        int[] perm = randomData.nextPermutation(3, 3);
+        observed[findPerm(p, perm)]++;
+    }
+    /* Use ChiSquare dist with df = 6-1 = 5, alpha = .001
+         * Change to 15.09 for alpha = .01
+         */
+    assertTrue(""chi-square test -- will fail about 1 in 1000 times"", testStatistic.chiSquare(expected, observed) < 20.52);
+    // Check size = 1 boundary case
+    int[] perm = randomData.nextPermutation(1, 1);
+    if ((perm.length != 1) || (perm[0] != 0)) {
+        fail(""bad permutation for n = 1, sample k = 1"");
+        // Make sure we fail for k size > n
+        try {
+            perm = randomData.nextPermutation(2, 3);
+            fail(""permutation k > n, expecting IllegalArgumentException"");
+        } catch (IllegalArgumentException ex) {
+            ;
+        }
+        // Make sure we fail for n = 0
+        try {
+            perm = randomData.nextPermutation(0, 0);
+            fail(""permutation k = n = 0, expecting IllegalArgumentException"");
+        } catch (IllegalArgumentException ex) {
+            ;
+        }
+    }
+}",
+1,632,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RandomDataTest.java,,findPerm,617,,,"{
+    int result = -1;
+    for (int i = 0; i < p.length; i++) {
+        boolean good = true;
+        for (int j = 0; j < samp.length; j++) {
+            if (samp[j] != p[i][j]) {
+                good = false;
+            }
+        }
+        if (good) {
+            return i;
+        }
+    }
+    fail(""permutation not found"");
+    return -1;
+}",
+1,72,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/MathUtilsTest.java,,MathUtilsTest,70,,,"{
+    super(name);
+}",
+1,75,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/MathUtilsTest.java,,setUp,74,,,"{
+}",
+1,81,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/MathUtilsTest.java,,suite,77,,,"{
+    TestSuite suite = new TestSuite(MathUtilsTest.class);
+    suite.setName(""MathUtils Tests"");
+    return suite;
+}",
+1,114,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/MathUtilsTest.java,,testBinomialCoefficient,83,,,"{
+    long[] bcoef5 = { 1, 5, 10, 10, 5, 1 };
+    long[] bcoef6 = { 1, 6, 15, 20, 15, 6, 1 };
+    for (int i = 0; i < 6; i++) {
+        assertEquals(""5 choose "" + i, bcoef5[i], MathUtils.binomialCoefficient(5, i));
+    }
+    for (int i = 0; i < 7; i++) {
+        assertEquals(""6 choose "" + i, bcoef6[i], MathUtils.binomialCoefficient(6, i));
+    }
+    for (int n = 1; n < 10; n++) {
+        for (int k = 0; k <= n; k++) {
+            assertEquals(n + "" choose "" + k, binomialCoefficient(n, k), MathUtils.binomialCoefficient(n, k));
+            assertEquals(n + "" choose "" + k, (double) binomialCoefficient(n, k), MathUtils.binomialCoefficientDouble(n, k), Double.MIN_VALUE);
+            assertEquals(n + "" choose "" + k, Math.log((double) binomialCoefficient(n, k)), MathUtils.binomialCoefficientLog(n, k), 10E-12);
+        }
+    }
+/* 
+       * Takes a long time for recursion to unwind, but succeeds 
+       * and yields exact value = 2,333,606,220
+        
+        assertEquals(MathUtils.binomialCoefficient(34,17),
+            binomialCoefficient(34,17));
+       */
+}",
+98,162,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/MathUtilsTest.java,,testBinomialCoefficientFail,116,,,"{
+    try {
+        long x = MathUtils.binomialCoefficient(0, 0);
+        fail(""expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    try {
+        long x = MathUtils.binomialCoefficient(4, 5);
+        fail(""expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    try {
+        double x = MathUtils.binomialCoefficientDouble(0, 0);
+        fail(""expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    try {
+        double x = MathUtils.binomialCoefficientDouble(4, 5);
+        fail(""expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    try {
+        double x = MathUtils.binomialCoefficientLog(0, 0);
+        fail(""expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    try {
+        double x = MathUtils.binomialCoefficientLog(4, 5);
+        fail(""expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    try {
+        long x = MathUtils.binomialCoefficient(67, 34);
+        fail(""expecting ArithmeticException"");
+    } catch (ArithmeticException ex) {
+        ;
+    }
+    double x = MathUtils.binomialCoefficientDouble(1030, 515);
+    assertTrue(""expecting infinite binomial coefficient"", Double.isInfinite(x));
+}",
+154,172,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/MathUtilsTest.java,,testFactorial,164,,,"{
+    for (int i = 1; i < 10; i++) {
+        assertEquals(i + ""! "", factorial(i), MathUtils.factorial(i));
+        assertEquals(i + ""! "", (double) factorial(i), MathUtils.factorialDouble(i), Double.MIN_VALUE);
+        assertEquals(i + ""! "", Math.log((double) factorial(i)), MathUtils.factorialLog(i), 10E-12);
+    }
+}",
+154,202,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/MathUtilsTest.java,,testFactorialFail,174,,,"{
+    try {
+        long x = MathUtils.factorial(0);
+        fail(""expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    try {
+        double x = MathUtils.factorialDouble(0);
+        fail(""expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    try {
+        double x = MathUtils.factorialLog(0);
+        fail(""expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    try {
+        double x = MathUtils.factorial(21);
+        fail(""expecting ArithmeticException"");
+    } catch (ArithmeticException ex) {
+        ;
+    }
+    assertTrue(""expecting infinite factorial value"", Double.isInfinite(MathUtils.factorialDouble(171)));
+}",
+209,217,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/MathUtilsTest.java,205,binomialCoefficient,208,"
+     * Exact recursive implementation to test against
+     ",,"{
+    if ((n == k) || (k == 0)) {
+        return 1;
+    }
+    if ((k == 1) || (k == n - 1)) {
+        return n;
+    }
+    return binomialCoefficient(n - 1, k - 1) + binomialCoefficient(n - 1, k);
+}",
+226,260,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/MathUtilsTest.java,,findBinomialLimits,229,,,"{
+    /**
+     * will kick out 66 as the limit for long
+     */
+    boolean foundLimit = false;
+    int test = 10;
+    while (!foundLimit) {
+        try {
+            double x = MathUtils.binomialCoefficient(test, test / 2);
+        } catch (ArithmeticException ex) {
+            foundLimit = true;
+            System.out.println(""largest n for binomialCoefficient = "" + (test - 1));
+        }
+        test++;
+    }
+    /**
+     * will kick out 1029 as the limit for double
+     */
+    foundLimit = false;
+    test = 10;
+    while (!foundLimit) {
+        double x = MathUtils.binomialCoefficientDouble(test, test / 2);
+        if (Double.isInfinite(x)) {
+            foundLimit = true;
+            System.out.println(""largest n for binomialCoefficientD = "" + (test - 1));
+        }
+        test++;
+    }
+}",
+226,303,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/MathUtilsTest.java,,findFactorialLimits,272,,,"{
+    /**
+     * will kick out 20 as the limit for long
+     */
+    boolean foundLimit = false;
+    int test = 10;
+    while (!foundLimit) {
+        try {
+            double x = MathUtils.factorial(test);
+        } catch (ArithmeticException ex) {
+            foundLimit = true;
+            System.out.println(""largest n for factorial = "" + (test - 1));
+        }
+        test++;
+    }
+    /**
+     * will kick out 170 as the limit for double
+     */
+    foundLimit = false;
+    test = 10;
+    while (!foundLimit) {
+        double x = MathUtils.factorialDouble(test);
+        if (Double.isInfinite(x)) {
+            foundLimit = true;
+            System.out.println(""largest n for factorialDouble = "" + (test - 1));
+        }
+        test++;
+    }
+}",
+1,315,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/MathUtilsTest.java,306,factorial,309,"
+     * Exact direct multiplication implementation to test against
+     ",,"{
+    long result = 1;
+    for (int i = 2; i <= n; i++) {
+        result *= i;
+    }
+    return result;
+}",
+1,322,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/MathUtilsTest.java,,testSignDouble,318,,,"{
+    double delta = 0.0;
+    assertEquals(1.0, MathUtils.sign(2.0), delta);
+    assertEquals(-1.0, MathUtils.sign(-2.0), delta);
+}",
+1,329,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/MathUtilsTest.java,,testSignFloat,325,,,"{
+    float delta = 0.0F;
+    assertEquals(1.0F, MathUtils.sign(2.0F), delta);
+    assertEquals(-1.0F, MathUtils.sign(-2.0F), delta);
+}",
+1,335,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/MathUtilsTest.java,,testSignByte,332,,,"{
+    assertEquals((byte) 1, MathUtils.sign((byte) 2));
+    assertEquals((byte) (-1), MathUtils.sign((byte) (-2)));
+}",
+1,341,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/MathUtilsTest.java,,testSignShort,338,,,"{
+    assertEquals((short) 1, MathUtils.sign((short) 2));
+    assertEquals((short) (-1), MathUtils.sign((short) (-2)));
+}",
+1,347,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/MathUtilsTest.java,,testSignInt,344,,,"{
+    assertEquals((int) 1, MathUtils.sign((int) (2)));
+    assertEquals((int) (-1), MathUtils.sign((int) (-2)));
+}",
+1,353,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/MathUtilsTest.java,,testSignLong,350,,,"{
+    assertEquals(1L, MathUtils.sign(2L));
+    assertEquals(-1L, MathUtils.sign(-2L));
+}",
+92,95,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,,RealMatrixImplTest,93,,,"{
+    super(name);
+}",
+98,99,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,,setUp,97,,,"{
+}",
+98,105,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,,suite,101,,,"{
+    TestSuite suite = new TestSuite(RealMatrixImplTest.class);
+    suite.setName(""RealMatrixImpl Tests"");
+    return suite;
+}",
+98,117,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,107,testDimensions,108, test dimensions ,,"{
+    RealMatrixImpl m = new RealMatrixImpl(testData);
+    RealMatrixImpl m2 = new RealMatrixImpl(testData2);
+    assertEquals(""testData row dimension"", 3, m.getRowDimension());
+    assertEquals(""testData column dimension"", 3, m.getColumnDimension());
+    assertTrue(""testData is square"", m.isSquare());
+    assertEquals(""testData2 row dimension"", m2.getRowDimension(), 2);
+    assertEquals(""testData2 column dimension"", m2.getColumnDimension(), 3);
+    assertTrue(""testData2 is not square"", !m2.isSquare());
+}",
+118,134,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,119,testCopyFunctions,120, test copy functions ,,"{
+    RealMatrixImpl m = new RealMatrixImpl(testData);
+    RealMatrixImpl m2 = new RealMatrixImpl(testData2);
+    m2.setData(m.getData());
+    assertClose(""getData"", m2, m, entryTolerance);
+    // no dangling reference...
+    m2.setEntry(1, 1, 2000d);
+    RealMatrixImpl m3 = new RealMatrixImpl(testData);
+    assertClose(""no getData side effect"", m, m3, entryTolerance);
+    m3 = (RealMatrixImpl) m.copy();
+    double[][] stompMe = { { 1d, 2d, 3d } };
+    m3.setDataRef(stompMe);
+    assertClose(""no copy side effect"", m, new RealMatrixImpl(testData), entryTolerance);
+}",
+138,149,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,136,testAdd,137, test add ,,"{
+    RealMatrixImpl m = new RealMatrixImpl(testData);
+    RealMatrixImpl mInv = new RealMatrixImpl(testDataInv);
+    RealMatrixImpl mPlusMInv = (RealMatrixImpl) m.add(mInv);
+    double[][] sumEntries = mPlusMInv.getData();
+    for (int row = 0; row < m.getRowDimension(); row++) {
+        for (int col = 0; col < m.getColumnDimension(); col++) {
+            assertEquals(""sum entry entry"", testDataPlusInv[row][col], sumEntries[row][col], entryTolerance);
+        }
+    }
+}",
+138,161,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,151,testAddFail,152, test add failure ,,"{
+    RealMatrixImpl m = new RealMatrixImpl(testData);
+    RealMatrixImpl m2 = new RealMatrixImpl(testData2);
+    try {
+        RealMatrixImpl mPlusMInv = (RealMatrixImpl) m.add(m2);
+        fail(""IllegalArgumentException expected"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+}",
+154,169,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,163,testNorm,164, test norm ,,"{
+    RealMatrixImpl m = new RealMatrixImpl(testData);
+    RealMatrixImpl m2 = new RealMatrixImpl(testData2);
+    assertEquals(""testData norm"", 14d, m.getNorm(), entryTolerance);
+    assertEquals(""testData2 norm"", 7d, m2.getNorm(), entryTolerance);
+}",
+154,183,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,171,testPlusMinus,172, test m-n = m + -n ,,"{
+    RealMatrixImpl m = new RealMatrixImpl(testData);
+    RealMatrixImpl m2 = new RealMatrixImpl(testDataInv);
+    assertClose(""m-n = m + -n"", m.subtract(m2), m2.scalarMultiply(-1d).add(m), entryTolerance);
+    try {
+        RealMatrix a = m.subtract(new RealMatrixImpl(testData2));
+        fail(""Expecting illegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+}",
+181,207,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,185,testMultiply,186, test multiply ,,"{
+    RealMatrixImpl m = new RealMatrixImpl(testData);
+    RealMatrixImpl mInv = new RealMatrixImpl(testDataInv);
+    RealMatrixImpl identity = new RealMatrixImpl(id);
+    RealMatrixImpl m2 = new RealMatrixImpl(testData2);
+    assertClose(""inverse multiply"", m.multiply(mInv), identity, entryTolerance);
+    assertClose(""inverse multiply"", mInv.multiply(m), identity, entryTolerance);
+    assertClose(""identity multiply"", m.multiply(identity), m, entryTolerance);
+    assertClose(""identity multiply"", identity.multiply(mInv), mInv, entryTolerance);
+    assertClose(""identity multiply"", m2.multiply(identity), m2, entryTolerance);
+    try {
+        RealMatrix a = m.multiply(new RealMatrixImpl(bigSingular));
+        fail(""Expecting illegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+}",
+209,219,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,209,testIsSingular,210, test isSingular ,,"{
+    RealMatrixImpl m = new RealMatrixImpl(singular);
+    assertTrue(""singular"", m.isSingular());
+    m = new RealMatrixImpl(bigSingular);
+    assertTrue(""big singular"", m.isSingular());
+    m = new RealMatrixImpl(id);
+    assertTrue(""identity nonsingular"", !m.isSingular());
+    m = new RealMatrixImpl(testData);
+    assertTrue(""testData nonsingular"", !m.isSingular());
+}",
+209,227,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,221,testInverse,222, test inverse ,,"{
+    RealMatrixImpl m = new RealMatrixImpl(testData);
+    RealMatrix mInv = new RealMatrixImpl(testDataInv);
+    assertClose(""inverse"", mInv, m.inverse(), normTolerance);
+    assertClose(""inverse^2"", m, m.inverse().inverse(), 10E-12);
+}",
+226,255,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,229,testSolve,230, test solve ,,"{
+    RealMatrixImpl m = new RealMatrixImpl(testData);
+    RealMatrix mInv = new RealMatrixImpl(testDataInv);
+    // being a bit slothful here -- actually testing that X = A^-1 * B
+    assertClose(""inverse-operate"", mInv.operate(testVector), m.solve(testVector), normTolerance);
+    try {
+        double[] x = m.solve(testVector2);
+        fail(""expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    RealMatrix bs = new RealMatrixImpl(bigSingular);
+    try {
+        RealMatrix a = bs.solve(bs);
+        fail(""Expecting illegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    try {
+        RealMatrix a = m.solve(bs);
+        fail(""Expecting illegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+}",
+226,269,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,257,testDeterminant,258, test determinant ,,"{
+    RealMatrix m = new RealMatrixImpl(bigSingular);
+    assertEquals(""singular determinant"", 0, m.getDeterminant(), 0);
+    m = new RealMatrixImpl(detData);
+    assertEquals(""nonsingular test"", -3d, m.getDeterminant(), normTolerance);
+    try {
+        double a = new RealMatrixImpl(testData2).getDeterminant();
+        fail(""Expecting illegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+}",
+226,282,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,271,testTrace,272, test trace ,,"{
+    RealMatrix m = new RealMatrixImpl(id);
+    assertEquals(""identity trace"", 3d, m.getTrace(), entryTolerance);
+    m = new RealMatrixImpl(testData2);
+    try {
+        double x = m.getTrace();
+        fail(""Expecting illegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+}",
+226,289,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,284,testScalarAdd,285, test sclarAdd ,,"{
+    RealMatrix m = new RealMatrixImpl(testData);
+    assertClose(""scalar add"", new RealMatrixImpl(testDataPlus2), m.scalarAdd(2d), entryTolerance);
+}",
+1,303,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,291,testOperate,292, test operate ,,"{
+    RealMatrix m = new RealMatrixImpl(id);
+    double[] x = m.operate(testVector);
+    assertClose(""identity operate"", testVector, x, entryTolerance);
+    m = new RealMatrixImpl(bigSingular);
+    try {
+        x = m.operate(testVector);
+        fail(""Expecting illegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+}",
+1,313,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,305,testTranspose,306, test transpose ,,"{
+    RealMatrix m = new RealMatrixImpl(testData);
+    assertClose(""inverse-transpose"", m.inverse().transpose(), m.transpose().inverse(), normTolerance);
+    m = new RealMatrixImpl(testData2);
+    RealMatrix mt = new RealMatrixImpl(testData2T);
+    assertClose(""transpose"", mt, m.transpose(), normTolerance);
+}",
+1,327,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,315,testPremultiply,316, test preMultiply ,,"{
+    RealMatrix m = new RealMatrixImpl(testData);
+    RealMatrix mp = new RealMatrixImpl(preMultTest);
+    assertClose(""premultiply"", m.preMultiply(testVector), mp, normTolerance);
+    m = new RealMatrixImpl(bigSingular);
+    try {
+        RealMatrix x = m.preMultiply(testVector);
+        fail(""expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+}",
+1,345,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,,testGetVectors,329,,,"{
+    RealMatrix m = new RealMatrixImpl(testData);
+    assertClose(""get row"", m.getRow(1), testDataRow1, entryTolerance);
+    assertClose(""get col"", m.getColumn(3), testDataCol3, entryTolerance);
+    try {
+        double[] x = m.getRow(10);
+        fail(""expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    try {
+        double[] x = m.getColumn(-1);
+        fail(""expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+}",
+1,364,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,,testEntryMutators,347,,,"{
+    RealMatrix m = new RealMatrixImpl(testData);
+    assertEquals(""get entry"", m.getEntry(1, 2), 2d, entryTolerance);
+    m.setEntry(1, 2, 100d);
+    assertEquals(""get entry"", m.getEntry(1, 2), 100d, entryTolerance);
+    try {
+        double x = m.getEntry(0, 2);
+        fail(""expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    try {
+        m.setEntry(1, 4, 200d);
+        fail(""expecting IllegalArgumentException"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+}",
+1,373,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,369,assertClose,370, verifies that two matrices are close (1-norm) ,,"{
+    assertTrue(msg, m.subtract(n).getNorm() < tolerance);
+}",
+1,385,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,375,assertClose,376, verifies that two vectors are close (sup norm) ,,"{
+    if (m.length != n.length) {
+        fail(""vectors not same length"");
+    }
+    for (int i = 0; i < m.length; i++) {
+        assertEquals(msg + "" "" + i + "" elements differ"", m[i], n[i], tolerance);
+    }
+}",
+1,396,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/RealMatrixImplTest.java,387,dumpMatrix,388, Useful for debugging ,,"{
+    for (int i = 0; i < m.getRowDimension(); i++) {
+        String os = """";
+        for (int j = 0; j < m.getColumnDimension(); j++) {
+            os += m.getEntry(i + 1, j + 1) + "" "";
+        }
+        System.out.println(os);
+    }
+}",
+1,88,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/CertifiedDataTest.java,82,CertifiedDataTest,86,"
+	 * Certified Data Test Constructor
+	 * @param name
+	 ",,"{
+    super(name);
+}",
+92,94,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/CertifiedDataTest.java,90,setUp,93," (non-Javadoc)
+	 * @see junit.framework.TestCase#setUp()
+	 ",,"{
+}",
+98,103,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/CertifiedDataTest.java,96,suite,99,"
+	 * @return The test suite
+	 ",,"{
+    TestSuite suite = new TestSuite(CertifiedDataTest.class);
+    suite.setName(""Certified Tests"");
+    return suite;
+}",
+98,139,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/CertifiedDataTest.java,105,testUnivariateImpl,108,"
+	 * Test UnivariateImpl
+	",,"{
+    u = new UnivariateImpl();
+    loadStats(""data/Lew.txt"");
+    assertEquals(""Lew: std"", std, u.getStandardDeviation(), .000000000001);
+    assertEquals(""Lew: mean"", mean, u.getMean(), .000000000001);
+    loadStats(""data/Lottery.txt"");
+    assertEquals(""Lottery: std"", std, u.getStandardDeviation(), .000000000001);
+    assertEquals(""Lottery: mean"", mean, u.getMean(), .000000000001);
+    loadStats(""data/PiDigits.txt"");
+    assertEquals(""PiDigits: std"", std, u.getStandardDeviation(), .0000000000001);
+    assertEquals(""PiDigits: mean"", mean, u.getMean(), .0000000000001);
+    loadStats(""data/Mavro.txt"");
+    assertEquals(""Mavro: std"", std, u.getStandardDeviation(), .00000000000001);
+    assertEquals(""Mavro: mean"", mean, u.getMean(), .00000000000001);
+    // loadStats(""data/Michelso.txt"");
+    // assertEquals(""Michelso: std"", std, u.getStandardDeviation(), .00000000000001);
+    // assertEquals(""Michelso: mean"", mean, u.getMean(), .00000000000001);
+    loadStats(""data/NumAcc1.txt"");
+    assertEquals(""NumAcc1: std"", std, u.getStandardDeviation(), .00000000000001);
+    assertEquals(""NumAcc1: mean"", mean, u.getMean(), .00000000000001);
+// loadStats(""data/NumAcc2.txt"");
+// assertEquals(""NumAcc2: std"", std, u.getStandardDeviation(), .000000001);
+// assertEquals(""NumAcc2: mean"", mean, u.getMean(), .00000000000001);
+}",
+138,175,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/CertifiedDataTest.java,141,testStoredUnivariateImpl,144,"
+	 * Test UnivariateImpl
+	 ",,"{
+    u = new StoreUnivariateImpl();
+    loadStats(""data/Lew.txt"");
+    assertEquals(""Lew: std"", std, u.getStandardDeviation(), .000000000001);
+    assertEquals(""Lew: mean"", mean, u.getMean(), .000000000001);
+    loadStats(""data/Lottery.txt"");
+    assertEquals(""Lottery: std"", std, u.getStandardDeviation(), .000000000001);
+    assertEquals(""Lottery: mean"", mean, u.getMean(), .000000000001);
+    loadStats(""data/PiDigits.txt"");
+    assertEquals(""PiDigits: std"", std, u.getStandardDeviation(), .0000000000001);
+    assertEquals(""PiDigits: mean"", mean, u.getMean(), .0000000000001);
+    loadStats(""data/Mavro.txt"");
+    assertEquals(""Mavro: std"", std, u.getStandardDeviation(), .00000000000001);
+    assertEquals(""Mavro: mean"", mean, u.getMean(), .00000000000001);
+    // loadStats(""data/Michelso.txt"");
+    // assertEquals(""Michelso: std"", std, u.getStandardDeviation(), .00000000000001);
+    // assertEquals(""Michelso: mean"", mean, u.getMean(), .00000000000001);
+    loadStats(""data/NumAcc1.txt"");
+    assertEquals(""NumAcc1: std"", std, u.getStandardDeviation(), .00000000000001);
+    assertEquals(""NumAcc1: mean"", mean, u.getMean(), .00000000000001);
+// loadStats(""data/NumAcc2.txt"");
+// assertEquals(""NumAcc2: std"", std, u.getStandardDeviation(), .000000001);
+// assertEquals(""NumAcc2: mean"", mean, u.getMean(), .00000000000001);
+}",
+181,225,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/CertifiedDataTest.java,177,loadStats,181,"
+	 * loads a Univariate off of a test file
+	 * @param file
+	 ",,"{
+    try {
+        u.clear();
+        mean = Double.NaN;
+        std = Double.NaN;
+        BufferedReader in = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(resource)));
+        String line = null;
+        for (int j = 0; j < 60; j++) {
+            line = in.readLine();
+            if (j == 40) {
+                mean = Double.parseDouble(line.substring(line.lastIndexOf("":"") + 1).trim());
+            }
+            if (j == 41) {
+                std = Double.parseDouble(line.substring(line.lastIndexOf("":"") + 1).trim());
+            }
+        }
+        line = in.readLine();
+        while (line != null) {
+            u.addValue(Double.parseDouble(line.trim()));
+            line = in.readLine();
+        }
+        in.close();
+    } catch (FileNotFoundException fnfe) {
+        log.error(fnfe.getMessage(), fnfe);
+    } catch (IOException ioe) {
+        log.error(ioe.getMessage(), ioe);
+    }
+}",
+89,90,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/ListUnivariateImplTest.java,,ListUnivariateImplTest,88,,,"{
+    super(name);
+}",
+92,93,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/ListUnivariateImplTest.java,,setUp,92,,,"{
+}",
+92,99,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/ListUnivariateImplTest.java,,suite,95,,,"{
+    TestSuite suite = new TestSuite(ListUnivariateImplTest.class);
+    suite.setName(""Freq Tests"");
+    return suite;
+}",
+98,122,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/ListUnivariateImplTest.java,101,testStats,102, test stats ,,"{
+    List externalList = new ArrayList();
+    StoreUnivariate u = new ListUnivariateImpl(externalList);
+    assertEquals(""total count"", 0, u.getN(), tolerance);
+    u.addValue(one);
+    u.addValue(two);
+    u.addValue(two);
+    u.addValue(three);
+    assertEquals(""N"", n, u.getN(), tolerance);
+    assertEquals(""sum"", sum, u.getSum(), tolerance);
+    assertEquals(""sumsq"", sumSq, u.getSumsq(), tolerance);
+    assertEquals(""var"", var, u.getVariance(), tolerance);
+    assertEquals(""std"", std, u.getStandardDeviation(), tolerance);
+    assertEquals(""mean"", mean, u.getMean(), tolerance);
+    assertEquals(""min"", min, u.getMin(), tolerance);
+    assertEquals(""max"", max, u.getMax(), tolerance);
+    u.clear();
+    assertEquals(""total count"", 0, u.getN(), tolerance);
+}",
+118,138,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/ListUnivariateImplTest.java,,testN0andN1Conditions,124,,,"{
+    List list = new ArrayList();
+    StoreUnivariate u = new ListUnivariateImpl(list);
+    assertTrue(""Mean of n = 0 set should be NaN"", Double.isNaN(u.getMean()));
+    assertTrue(""Standard Deviation of n = 0 set should be NaN"", Double.isNaN(u.getStandardDeviation()));
+    assertTrue(""Variance of n = 0 set should be NaN"", Double.isNaN(u.getVariance()));
+    list.add(new Double(one));
+    assertTrue(""Mean of n = 1 set should be value of single item n1"", u.getMean() == one);
+    assertTrue(""StdDev of n = 1 set should be zero, instead it is: "" + u.getStandardDeviation(), u.getStandardDeviation() == 0);
+    assertTrue(""Variance of n = 1 set should be zero"", u.getVariance() == 0);
+}",
+138,153,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/ListUnivariateImplTest.java,,testSkewAndKurtosis,140,,,"{
+    StoreUnivariate u = new StoreUnivariateImpl();
+    double[] testArray = { 12.5, 12, 11.8, 14.2, 14.9, 14.5, 21, 8.2, 10.3, 11.3, 14.1, 9.9, 12.2, 12, 12.1, 11, 19.8, 11, 10, 8.8, 9, 12.3 };
+    for (int i = 0; i < testArray.length; i++) {
+        u.addValue(testArray[i]);
+    }
+    assertEquals(""mean"", 12.40455, u.getMean(), 0.0001);
+    assertEquals(""variance"", 10.00236, u.getVariance(), 0.0001);
+    assertEquals(""skewness"", 1.437424, u.getSkewness(), 0.0001);
+    assertEquals(""kurtosis"", 2.37719, u.getKurtosis(), 0.0001);
+}",
+154,178,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/ListUnivariateImplTest.java,,testProductAndGeometricMean,155,,,"{
+    ListUnivariateImpl u = new ListUnivariateImpl(new ArrayList());
+    u.setWindowSize(10);
+    u.addValue(1.0);
+    u.addValue(2.0);
+    u.addValue(3.0);
+    u.addValue(4.0);
+    assertEquals(""Product not expected"", 24.0, u.getProduct(), Double.MIN_VALUE);
+    assertEquals(""Geometric mean not expected"", 2.213364, u.getGeometricMean(), 0.00001);
+    // Now test rolling - UnivariateImpl should discount the contribution
+    // of a discarded element
+    for (int i = 0; i < 10; i++) {
+        u.addValue(i + 2);
+    }
+    // Values should be (2,3,4,5,6,7,8,9,10,11)
+    assertEquals(""Product not expected"", 39916800.0, u.getProduct(), 0.00001);
+    assertEquals(""Geometric mean not expected"", 5.755931, u.getGeometricMean(), 0.00001);
+}",
+1,85,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/UnivariateImplTest.java,,UnivariateImplTest,83,,,"{
+    super(name);
+}",
+1,88,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/UnivariateImplTest.java,,setUp,87,,,"{
+}",
+89,94,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/UnivariateImplTest.java,,suite,90,,,"{
+    TestSuite suite = new TestSuite(UnivariateImplTest.class);
+    suite.setName(""Freq Tests"");
+    return suite;
+}",
+98,114,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/UnivariateImplTest.java,96,testStats,97, test stats ,,"{
+    UnivariateImpl u = new UnivariateImpl();
+    assertEquals(""total count"", 0, u.getN(), tolerance);
+    u.addValue(one);
+    u.addValue(twoF);
+    u.addValue(twoL);
+    u.addValue(three);
+    assertEquals(""N"", n, u.getN(), tolerance);
+    assertEquals(""sum"", sum, u.getSum(), tolerance);
+    assertEquals(""sumsq"", sumSq, u.getSumsq(), tolerance);
+    assertEquals(""var"", var, u.getVariance(), tolerance);
+    assertEquals(""std"", std, u.getStandardDeviation(), tolerance);
+    assertEquals(""mean"", mean, u.getMean(), tolerance);
+    assertEquals(""min"", min, u.getMin(), tolerance);
+    assertEquals(""max"", max, u.getMax(), tolerance);
+    u.clear();
+    assertEquals(""total count"", 0, u.getN(), tolerance);
+}",
+98,168,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/UnivariateImplTest.java,,testN0andN1Conditions,116,,,"{
+    UnivariateImpl u = new UnivariateImpl();
+    assertTrue(""Mean of n = 0 set should be NaN"", Double.isNaN(u.getMean()));
+    assertTrue(""Standard Deviation of n = 0 set should be NaN"", Double.isNaN(u.getStandardDeviation()));
+    assertTrue(""Variance of n = 0 set should be NaN"", Double.isNaN(u.getVariance()));
+    assertTrue(""skew of n = 0 set should be NaN"", Double.isNaN(u.getSkewness()));
+    assertTrue(""kurtosis of n = 0 set should be NaN"", Double.isNaN(u.getKurtosis()));
+    /* n=1 */
+    u.addValue(one);
+    assertTrue(""mean should be one (n = 1)"", u.getMean() == one);
+    assertTrue(""geometric should be one (n = 1)"", u.getGeometricMean() == one);
+    assertTrue(""Std should be zero (n = 1)"", u.getStandardDeviation() == 0.0);
+    assertTrue(""variance should be zero (n = 1)"", u.getVariance() == 0.0);
+    assertTrue(""skew should be zero (n = 1)"", u.getSkewness() == 0.0);
+    assertTrue(""kurtosis should be zero (n = 1)"", u.getKurtosis() == 0.0);
+    /* n=2 */
+    u.addValue(twoF);
+    assertTrue(""Std should not be zero (n = 2)"", u.getStandardDeviation() != 0.0);
+    assertTrue(""variance should not be zero (n = 2)"", u.getVariance() != 0.0);
+    assertTrue(""skew should not be zero (n = 2)"", u.getSkewness() == 0.0);
+    assertTrue(""kurtosis should be zero (n = 2)"", u.getKurtosis() == 0.0);
+    /* n=3 */
+    u.addValue(twoL);
+    assertTrue(""skew should not be zero (n = 3)"", u.getSkewness() != 0.0);
+    assertTrue(""kurtosis should be zero (n = 3)"", u.getKurtosis() == 0.0);
+    /* n=4 */
+    u.addValue(three);
+    assertTrue(""kurtosis should not be zero (n = 4)"", u.getKurtosis() != 0.0);
+}",
+154,194,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/UnivariateImplTest.java,,testProductAndGeometricMean,170,,,"{
+    UnivariateImpl u = new UnivariateImpl(10);
+    u.addValue(1.0);
+    u.addValue(2.0);
+    u.addValue(3.0);
+    u.addValue(4.0);
+    assertEquals(""Product not expected"", 24.0, u.getProduct(), Double.MIN_VALUE);
+    assertEquals(""Geometric mean not expected"", 2.213364, u.getGeometricMean(), 0.00001);
+    // Now test rolling - UnivariateImpl should discount the contribution
+    // of a discarded element
+    for (int i = 0; i < 10; i++) {
+        u.addValue(i + 2);
+    }
+    // Values should be (2,3,4,5,6,7,8,9,10,11)
+    assertEquals(""Product not expected"", 39916800.0, u.getProduct(), 0.00001);
+    assertEquals(""Geometric mean not expected"", 5.755931, u.getGeometricMean(), 0.00001);
+}",
+181,207,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/UnivariateImplTest.java,,testRollingMinMax,196,,,"{
+    UnivariateImpl u = new UnivariateImpl(3);
+    u.addValue(1.0);
+    u.addValue(5.0);
+    u.addValue(3.0);
+    // discarding min
+    u.addValue(4.0);
+    assertEquals(""min not expected"", 3.0, u.getMin(), Double.MIN_VALUE);
+    // discarding max
+    u.addValue(1.0);
+    assertEquals(""max not expected"", 4.0, u.getMax(), Double.MIN_VALUE);
+}",
+209,236,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/UnivariateImplTest.java,,testNaNContracts,209,,,"{
+    UnivariateImpl u = new UnivariateImpl();
+    double nan = Double.NaN;
+    assertTrue(""mean not NaN"", Double.isNaN(u.getMean()));
+    assertTrue(""min not NaN"", Double.isNaN(u.getMin()));
+    assertTrue(""std dev not NaN"", Double.isNaN(u.getStandardDeviation()));
+    assertTrue(""var not NaN"", Double.isNaN(u.getVariance()));
+    assertTrue(""geom mean not NaN"", Double.isNaN(u.getGeometricMean()));
+    u.addValue(1.0);
+    assertEquals(""mean not expected"", 1.0, u.getMean(), Double.MIN_VALUE);
+    assertEquals(""variance not expected"", 0.0, u.getVariance(), Double.MIN_VALUE);
+    assertEquals(""geometric mean not expected"", 1.0, u.getGeometricMean(), Double.MIN_VALUE);
+    u.addValue(-1.0);
+    assertTrue(""geom mean not NaN"", Double.isNaN(u.getGeometricMean()));
+    u.addValue(0.0);
+    assertTrue(""geom mean not NaN"", Double.isNaN(u.getGeometricMean()));
+// FiXME: test all other NaN contract specs
+}","225_// FiXME: test all other NaN contract specs
+"
+1,88,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/StoreUnivariateImplTest.java,,StoreUnivariateImplTest,86,,,"{
+    super(name);
+}",
+89,91,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/StoreUnivariateImplTest.java,,setUp,90,,,"{
+}",
+92,97,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/StoreUnivariateImplTest.java,,suite,93,,,"{
+    TestSuite suite = new TestSuite(StoreUnivariateImplTest.class);
+    suite.setName(""Freq Tests"");
+    return suite;
+}",
+98,117,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/StoreUnivariateImplTest.java,99,testStats,100, test stats ,,"{
+    StoreUnivariate u = new StoreUnivariateImpl();
+    assertEquals(""total count"", 0, u.getN(), tolerance);
+    u.addValue(one);
+    u.addValue(two);
+    u.addValue(two);
+    u.addValue(three);
+    assertEquals(""N"", n, u.getN(), tolerance);
+    assertEquals(""sum"", sum, u.getSum(), tolerance);
+    assertEquals(""sumsq"", sumSq, u.getSumsq(), tolerance);
+    assertEquals(""var"", var, u.getVariance(), tolerance);
+    assertEquals(""std"", std, u.getStandardDeviation(), tolerance);
+    assertEquals(""mean"", mean, u.getMean(), tolerance);
+    assertEquals(""min"", min, u.getMin(), tolerance);
+    assertEquals(""max"", max, u.getMax(), tolerance);
+    u.clear();
+    assertEquals(""total count"", 0, u.getN(), tolerance);
+}",
+118,137,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/StoreUnivariateImplTest.java,,testN0andN1Conditions,119,,,"{
+    StoreUnivariate u = new StoreUnivariateImpl();
+    assertTrue(""Mean of n = 0 set should be NaN"", Double.isNaN(u.getMean()));
+    assertTrue(""Standard Deviation of n = 0 set should be NaN"", Double.isNaN(u.getStandardDeviation()));
+    assertTrue(""Variance of n = 0 set should be NaN"", Double.isNaN(u.getVariance()));
+    u.addValue(one);
+    assertTrue(""Mean of n = 1 set should be value of single item n1"", u.getMean() == one);
+    assertTrue(""StdDev of n = 1 set should be zero, instead it is: "" + u.getStandardDeviation(), u.getStandardDeviation() == 0);
+    assertTrue(""Variance of n = 1 set should be zero"", u.getVariance() == 0);
+}",
+138,153,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/StoreUnivariateImplTest.java,,testSkewAndKurtosis,139,,,"{
+    StoreUnivariate u = new StoreUnivariateImpl();
+    double[] testArray = { 12.5, 12, 11.8, 14.2, 14.9, 14.5, 21, 8.2, 10.3, 11.3, 14.1, 9.9, 12.2, 12, 12.1, 11, 19.8, 11, 10, 8.8, 9, 12.3 };
+    for (int i = 0; i < testArray.length; i++) {
+        u.addValue(testArray[i]);
+    }
+    assertEquals(""mean"", 12.40455, u.getMean(), 0.0001);
+    assertEquals(""variance"", 10.00236, u.getVariance(), 0.0001);
+    assertEquals(""skewness"", 1.437424, u.getSkewness(), 0.0001);
+    assertEquals(""kurtosis"", 2.37719, u.getKurtosis(), 0.0001);
+}",
+154,180,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/StoreUnivariateImplTest.java,,testProductAndGeometricMean,155,,,"{
+    StoreUnivariateImpl u = new StoreUnivariateImpl();
+    u.setWindowSize(10);
+    u.addValue(1.0);
+    u.addValue(2.0);
+    u.addValue(3.0);
+    u.addValue(4.0);
+    assertEquals(""Product not expected"", 24.0, u.getProduct(), Double.MIN_VALUE);
+    assertEquals(""Geometric mean not expected"", 2.213364, u.getGeometricMean(), 0.00001);
+    // Now test rolling - UnivariateImpl should discount the contribution
+    // of a discarded element
+    for (int i = 0; i < 10; i++) {
+        u.addValue(i + 2);
+    }
+    // Values should be (2,3,4,5,6,7,8,9,10,11)
+    assertEquals(""Product not expected"", 39916800.0, u.getProduct(), 0.00001);
+    assertEquals(""Geometric mean not expected"", 5.755931, u.getGeometricMean(), 0.00001);
+}",
+181,208,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/StoreUnivariateImplTest.java,,testGetSortedValues,182,,,"{
+    double[] test1 = { 5, 4, 3, 2, 1 };
+    double[] test2 = { 5, 2, 1, 3, 4, 0 };
+    double[] test3 = { 1 };
+    int[] testi = null;
+    double[] test4 = null;
+    RandomData rd = new RandomDataImpl();
+    tstGetSortedValues(test1);
+    tstGetSortedValues(test2);
+    tstGetSortedValues(test3);
+    for (int i = 0; i < 10; i++) {
+        testi = rd.nextPermutation(10, 6);
+        test4 = new double[6];
+        for (int j = 0; j < testi.length; j++) {
+            test4[j] = (double) testi[j];
+        }
+        tstGetSortedValues(test4);
+    }
+    for (int i = 0; i < 10; i++) {
+        testi = rd.nextPermutation(10, 5);
+        test4 = new double[5];
+        for (int j = 0; j < testi.length; j++) {
+            test4[j] = (double) testi[j];
+        }
+        tstGetSortedValues(test4);
+    }
+}",
+209,225,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/StoreUnivariateImplTest.java,,tstGetSortedValues,211,,,"{
+    StoreUnivariateImpl u = new StoreUnivariateImpl();
+    for (int i = 0; i < test.length; i++) {
+        u.addValue(test[i]);
+    }
+    double[] sorted = u.getSortedValues();
+    if (sorted.length != test.length) {
+        fail(""wrong length for sorted values array"");
+    }
+    for (int i = 0; i < sorted.length - 1; i++) {
+        if (sorted[i] > sorted[i + 1]) {
+            fail(""sorted values out of sequence"");
+        }
+    }
+}",
+226,288,111_e3ea7f7638a18820580408e7a412ec78c33d0144/src/test/org/apache/commons/math/stat/StoreUnivariateImplTest.java,,testPercentiles,227,,,"{
+    double[] test = { 5, 4, 3, 2, 1 };
+    StoreUnivariateImpl u = new StoreUnivariateImpl();
+    for (int i = 0; i < test.length; i++) {
+        u.addValue(test[i]);
+    }
+    assertEquals(""expecting min"", 1, u.getPercentile(5), 10E-12);
+    assertEquals(""expecting max"", 5, u.getPercentile(99), 10E-12);
+    assertEquals(""expecting middle"", 3, u.getPercentile(50), 10E-12);
+    try {
+        double x = u.getPercentile(0);
+        fail(""expecting IllegalArgumentException for getPercentile(0)"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    try {
+        double x = u.getPercentile(120);
+        fail(""expecting IllegalArgumentException for getPercentile(120)"");
+    } catch (IllegalArgumentException ex) {
+        ;
+    }
+    u.clear();
+    double[] test2 = { 1, 2, 3, 4 };
+    for (int i = 0; i < test2.length; i++) {
+        u.addValue(test2[i]);
+    }
+    assertEquals(""Q1"", 1.25, u.getPercentile(25), 10E-12);
+    assertEquals(""Q3"", 3.75, u.getPercentile(75), 10E-12);
+    assertEquals(""Q2"", 2.5, u.getPercentile(50), 10E-12);
+    u.clear();
+    double[] test3 = { 1 };
+    for (int i = 0; i < test3.length; i++) {
+        u.addValue(test3[i]);
+    }
+    assertEquals(""Q1"", 1, u.getPercentile(25), 10E-12);
+    assertEquals(""Q3"", 1, u.getPercentile(75), 10E-12);
+    assertEquals(""Q2"", 1, u.getPercentile(50), 10E-12);
+    u.clear();
+    RandomData rd = new RandomDataImpl();
+    // will contain 0-99
+    int[] testi = rd.nextPermutation(100, 100);
+    for (int j = 0; j < testi.length; j++) {
+        // OK, laugh at me for the cast
+        u.addValue((double) testi[j]);
+    }
+    for (int i = 1; i < 100; i++) {
+        assertEquals(""percentile "" + i, (double) i - 1 + (double) i * (.01), u.getPercentile(i), 10E-12);
+    }
+    u.clear();
+    double[] test4 = { 1, 2, 3, 4, 100 };
+    for (int i = 0; i < test4.length; i++) {
+        u.addValue(test4[i]);
+    }
+    assertEquals(""80th"", 80.8, u.getPercentile(80), 10E-12);
+    u.clear();
+    assertTrue(""empty value set should return NaN"", Double.isNaN(u.getPercentile(50)));
+}",

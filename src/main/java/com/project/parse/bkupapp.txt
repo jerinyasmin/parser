@@ -1,0 +1,642 @@
+package com.project.parse;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import com.github.kevinsawicki.http.HttpRequest;
+// import com.project.githubsearch.model.MavenPackage;
+// import com.project.githubsearch.model.Query;
+// import com.project.githubsearch.model.ResolvedData;
+// import com.project.githubsearch.model.ResolvedFile;
+// import com.project.githubsearch.model.Response;
+// import com.project.githubsearch.model.SynchronizedData;
+// import com.project.githubsearch.model.SynchronizedFeeder;
+// import com.project.githubsearch.model.SynchronizedTypeSolver;
+// import com.project.githubsearch.model.GithubToken;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import javassist.bytecode.MethodInfo;
+
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ParseProblemException;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.BodyDeclaration;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.ast.expr.Name;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.resolution.UnsolvedSymbolException;
+import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
+import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
+
+
+import java.util.Optional;
+import com.github.javaparser.ast.comments.Comment;
+
+/**
+ * parse java file and get the method calls
+ *
+ */
+public class App {
+
+    
+    private static Instant start;
+    private static Instant currentTime;
+
+    private static boolean found;
+
+    private static List<ArrayList<String>> lRestult = new ArrayList<ArrayList<String>>();
+
+    private static ArrayList<String> methodInfoResult = new ArrayList<String>();
+
+    private static String methodName = "";
+
+
+    public static void main(final String[] args) {
+		List<String> files = new ArrayList<String>();
+        files = Arrays.asList("commons-math/src/test/org/apache/commons/math/distribution/BinomialDistributionTest.java", 
+ "commons-math/src/test/org/apache/commons/math/random/RandomDataTest.java", 
+ "commons-math/src/test/org/apache/commons/math/util/MathUtilsTest.java", 
+ "commons-math/src/test/org/apache/commons/math/stat/DescriptiveStatisticsTest.java", 
+ "commons-math/src/test/org/apache/commons/math/stat/StoreUnivariateImplTest.java", 
+ "commons-math/src/test/org/apache/commons/math/util/TransformerMapTest.java", 
+ "commons-math/src/test/org/apache/commons/math/util/BeanTransformerTest.java", 
+ "commons-math/src/java/org/apache/commons/math/stat/univariate/moment/Kurtosis.java", 
+ "commons-math/src/test/org/apache/commons/math/analysis/BisectionSolverTest.java", 
+ "commons-math/src/java/org/apache/commons/math/stat/AbstractStorelessDescriptiveStatistics.java", 
+ "commons-math/src/test/org/apache/commons/math/util/FixedDoubleArrayTest.java", 
+ "commons-math/src/java/org/apache/commons/math/stat/univariate/moment/FourthMoment.java", 
+ "commons-math/src/test/org/apache/commons/math/analysis/ConvergenceExceptionTest.java", 
+ "commons-math/src/test/org/apache/commons/math/analysis/PolynomialFunctionTest.java", 
+ "commons-math/src/test/org/apache/commons/math/util/ExpandableDoubleArrayTest.java", 
+ "commons-math/src/test/org/apache/commons/math/stat/BivariateRegressionTest.java", 
+ "commons-math/src/java/org/apache/commons/math/stat/TestStatisticImpl.java",
+ "commons-math/src/test/org/apache/commons/math/distribution/GammaDistributionTest.java",
+ "commons-math/src/test/org/apache/commons/math/stat/ListUnivariateImplTest.java",
+ "commons-math/src/test/org/apache/commons/math/complex/ComplexTest.java",
+ "commons-math/src/java/org/apache/commons/math/analysis/PolynomialFunction.java",
+ "commons-math/src/test/org/apache/commons/math/stat/CertifiedDataTest.java",
+ "commons-math/src/java/org/apache/commons/math/linear/RealMatrixImpl.java",
+ "commons-math/src/test/org/apache/commons/math/stat/MixedListUnivariateImplTest.java",
+ "commons-math/src/test/org/apache/commons/math/analysis/InterpolatorTest.java",
+ "commons-math/src/test/org/apache/commons/math/util/DoubleArrayAbstractTest.java",
+ "commons-math/src/java/org/apache/commons/math/distribution/HypergeometricDistributionImpl.java",
+ "commons-math/src/java/org/apache/commons/math/analysis/CubicSplineFunction.java",
+ "commons-math/src/java/org/apache/commons/math/complex/ComplexMath.java",
+ "commons-math/src/java/org/apache/commons/math/distribution/FDistributionImpl.java",
+ "commons-math/src/test/org/apache/commons/math/MathConfigurationExceptionTest.java");
+ 
+ for (String file_ins : files) {
+  System.out.println("file: " + file_ins);
+  System.out.println("-----------------------------------------------------");	
+        try {
+            // FileInputStream file = new FileInputStream("data/BinomialDistribution.txt");
+
+            File file = new File("D:/srccc/" + file_ins);
+
+            if (!file.exists()) {
+                System.out.println("no");
+            }
+
+            CompilationUnit cu = StaticJavaParser.parse(new FileInputStream(file));
+
+            Integer startLine =  0;  
+            Integer endLine = 0;
+            Boolean foundinner = false;
+            for (TypeDeclaration typeDec : cu.getTypes()) {
+                List<BodyDeclaration> members = typeDec.getMembers();
+                if (members != null) {
+                    for (BodyDeclaration member : members) {
+                        if (member.isClassOrInterfaceDeclaration()) {
+                            ClassOrInterfaceDeclaration cl = (ClassOrInterfaceDeclaration) member;
+                            List<BodyDeclaration<?>> members2 = cl.getMembers();
+
+                            if (members2 != null) {
+                                for (BodyDeclaration member2 : members2) {
+                                    if (member2.isMethodDeclaration()) {
+                                        MethodDeclaration field = (MethodDeclaration) member2;
+                                        startLine =  field.getBegin().get().line;  
+                                        endLine = field.getEnd().get().line;
+
+                                        String comment = field.getComment().toString();
+
+                                        String body = field.getBody().toString();
+        
+                                        // if (startLine <= lineNumber && lineNumber <= endLine) {
+                                        //     foundinner = true;
+                                        //     // (field.getComment());
+                                        //     // System.out.println(field.getDeclarationAsString() + field.getBody());
+                                        //     codeBlock =field.getComment() + field.getDeclarationAsString() + field.getBody();
+                                        //     break;
+                                        // }
+                                    }
+                                }
+                            }
+                        }
+                        if (member.isMethodDeclaration() & !foundinner) {
+                            MethodDeclaration field = (MethodDeclaration) member;
+                            Optional<Comment> commentOptional = field.getComment();
+                            if (commentOptional.isPresent()) {
+                            }
+                            startLine =  field.getBegin().get().line;  
+                            endLine = field.getEnd().get().line;
+                            String comment = field.getComment().toString();
+                           
+                            String body = field.getBody().toString();
+
+                            System.out.println("startLine: " + startLine + " endLine: " + endLine);
+
+                            String full = comment + body;
+                            full = full.toLowerCase();
+                            if (full.contains("todo") || full.contains("fixme") || full.contains("xxx")) {
+                                if (full.contains("auto-generated catch block")) {
+                                    System.out.println("file: " + file_ins);
+                                    System.out.println(field.getDeclarationAsString());                                  System.out.println("found it");
+                            }
+                            // System.out.println(full);
+
+                            }
+
+
+                        }
+                    }
+                }
+            }
+
+            // ArrayList<MethodCallExpr> methodCallExprs = (ArrayList<MethodCallExpr>) cu.findAll(MethodCallExpr.class);
+            
+            // for (int j = 0; j < methodCallExprs.size(); j++) {
+            //     MethodCallExpr mce = methodCallExprs.get(j);
+                
+            //     if (mce.getName().toString().equals("")) {
+                        
+            //     }
+            // }
+        } catch(Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }   
+    
+    }
+
+    private static void print(String s) {
+        System.out.println(s);
+    }
+
+    // private static List<String> getNeededJars(final File file) {
+    //     final List<String> jarsPath = new ArrayList<String>();
+    //     final TypeSolver typeSolver = new CombinedTypeSolver(new ReflectionTypeSolver(false),
+    //             new JavaParserTypeSolver(new File("src/main/java")));
+    //     StaticJavaParser.getConfiguration().setSymbolResolver(new JavaSymbolSolver(typeSolver));
+
+    //     // list of specific package imported
+    //     final List<String> importedPackages = new ArrayList<String>();
+    //     try {
+    //         final CompilationUnit cu = StaticJavaParser.parse(file);
+    //         cu.findAll(Name.class).forEach(mce -> {
+    //             final String[] names = mce.toString().split("[.]");
+    //             if (names.length >= 2) { // filter some wrong detected import like Override, SupressWarning
+    //                 if (importedPackages.isEmpty()) {
+    //                     importedPackages.add(mce.toString());
+    //                 } else {
+    //                     boolean isAlreadyDefined = false;
+    //                     for (int i = 0; i < importedPackages.size(); i++) {
+    //                         if (importedPackages.get(i).contains(mce.toString())) {
+    //                             isAlreadyDefined = true;
+    //                             break;
+    //                         }
+    //                     }
+    //                     if (!isAlreadyDefined) {
+    //                         importedPackages.add(mce.toString());
+    //                     }
+    //                 }
+    //             }
+    //         });
+    //     } catch (final FileNotFoundException e) {
+    //         System.out.println("EXCEPTION");
+    //         System.out.println("File not found!");
+    //     } catch (final ParseProblemException parseException) {
+    //         return jarsPath;
+    //     }
+
+    //     // System.out.println();
+    //     // System.out.println("=== Imported Packages ==");
+    //     // for (int i = 0; i < importedPackages.size(); i++) {
+    //     // System.out.println(importedPackages.get(i));
+    //     // }
+
+    //     // filter importedPackages
+    //     // remove the project package and java predefined package
+    //     final List<String> neededPackages = new ArrayList<String>();
+    //     if (importedPackages.size() > 0) {
+    //         String qualifiedName = importedPackages.get(0);
+    //         String[] names = qualifiedName.split("[.]");
+    //         final String projectPackage = names[0].toString();
+    //         for (int i = 1; i < importedPackages.size(); i++) { // the first package is skipped
+    //             qualifiedName = importedPackages.get(i);
+    //             names = qualifiedName.split("[.]");
+    //             final String basePackage = names[0];
+    //             if (!basePackage.equals(projectPackage) && !basePackage.equals("java") && !basePackage.equals("javax")
+    //                     && !basePackage.equals("Override")) {
+    //                 neededPackages.add(importedPackages.get(i));
+    //             }
+    //         }
+    //     }
+
+    //     // System.out.println();
+    //     // System.out.println("=== Needed Packages ==");
+    //     // for (int i = 0; i < neededPackages.size(); i++) {
+    //     // System.out.println(neededPackages.get(i));
+    //     // }
+
+    //     final List<MavenPackage> mavenPackages = new ArrayList<MavenPackage>();
+
+    //     // get the groupId and artifactId from the package qualified name
+    //     for (int i = 0; i < neededPackages.size(); i++) {
+    //         final String qualifiedName = neededPackages.get(i);
+    //         final MavenPackage mavenPackage = getMavenPackageArtifact(qualifiedName);
+
+    //         if (!mavenPackage.getId().equals("")) { // handle if the maven package is not exist
+    //             // filter if the package is used before
+    //             boolean isAlreadyUsed = false;
+    //             for (int j = 0; j < mavenPackages.size(); j++) {
+    //                 final MavenPackage usedPackage = mavenPackages.get(j);
+    //                 if (mavenPackage.getGroupId().equals(usedPackage.getGroupId())
+    //                         && mavenPackage.getArtifactId().equals(usedPackage.getArtifactId())) {
+    //                     isAlreadyUsed = true;
+    //                 }
+    //             }
+    //             if (!isAlreadyUsed) {
+    //                 mavenPackages.add(mavenPackage);
+    //             }
+    //         }
+    //     }
+
+    //     // System.out.println();
+    //     // System.out.println("=== Maven Packages ==");
+    //     // for (int i = 0; i < mavenPackages.size(); i++) {
+    //     // System.out.println("GroupID: " + mavenPackages.get(i).getGroupId() + " -
+    //     // ArtifactID: "
+    //     // + mavenPackages.get(i).getArtifactId());
+    //     // }
+
+    //     // System.out.println();
+    //     // System.out.println("=== Downloading Packages ==");
+    //     for (int i = 0; i < mavenPackages.size(); i++) {
+    //         final String pathToJar = downloadMavenJar(mavenPackages.get(i).getGroupId(),
+    //                 mavenPackages.get(i).getArtifactId());
+    //         if (!pathToJar.equals("")) {
+    //             // System.out.println("Downloaded: " + pathToJar);
+    //             jarsPath.add(pathToJar);
+    //         }
+    //     }
+
+    //     return jarsPath;
+    // }
+
+    // // download the latest package by groupId and artifactId
+    // private static String downloadMavenJar(final String groupId, final String artifactId) {
+    //     final String path = JARS_LOCATION + artifactId + "-latest.jar";
+    //     final String url = "http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g="
+    //             + groupId + "&a=" + artifactId + "&v=LATEST";
+    //     // System.out.println("URL: " + url);
+    //     final File jarFile = new File(path);
+
+    //     if (!jarFile.exists()) {
+    //         // Equivalent command conversion for Java execution
+    //         final String[] command = { "curl", "-L", url, "-o", path };
+
+    //         final ProcessBuilder process = new ProcessBuilder(command);
+    //         Process p;
+    //         try {
+    //             p = process.start();
+    //             final BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+    //             final StringBuilder builder = new StringBuilder();
+    //             String line = null;
+    //             while ((line = reader.readLine()) != null) {
+    //                 builder.append(line);
+    //                 builder.append(System.getProperty("line.separator"));
+    //             }
+    //             final String result = builder.toString();
+    //             System.out.print(result);
+
+    //         } catch (final IOException e) {
+    //             System.out.print("error");
+    //             e.printStackTrace();
+    //         }
+    //     }
+
+    //     return path;
+
+    // }
+
+    // private static MavenPackage getMavenPackageArtifact(final String qualifiedName) {
+
+    //     final MavenPackage mavenPackageName = new MavenPackage();
+
+    //     final String url = "https://search.maven.org/solrsearch/select?q=fc:" + qualifiedName + "&wt=json";
+
+    //     final HttpRequest request = HttpRequest.get(url, false);
+
+    //     // handle response
+    //     final int responseCode = request.code();
+    //     if (responseCode == RESPONSE_OK) {
+    //         final JSONObject body = new JSONObject(request.body());
+    //         final JSONObject response = body.getJSONObject("response");
+    //         final int numFound = response.getInt("numFound");
+    //         final JSONArray mavenPackages = response.getJSONArray("docs");
+    //         if (numFound > 0) {
+    //             mavenPackageName.setId(mavenPackages.getJSONObject(0).getString("id")); // set the id
+    //             mavenPackageName.setGroupId(mavenPackages.getJSONObject(0).getString("g")); // set the first group id
+    //             mavenPackageName.setArtifactId(mavenPackages.getJSONObject(0).getString("a")); // set the first artifact
+    //                                                                                            // id
+    //             mavenPackageName.setVersion(mavenPackages.getJSONObject(0).getString("v")); // set the first version id
+    //         }
+    //     } else {
+    //         System.out.println("Response Code: " + responseCode);
+    //         System.out.println("Response Body: " + request.body());
+    //         System.out.println("Response Headers: " + request.headers());
+    //     }
+
+    //     return mavenPackageName;
+    // }
+
+
+    // private static ResolvedFile resolveFile(int fileId, ArrayList<Query> queries) {
+    //     String pathFile = new String(DATA_LOCATION + methodName + "/" + "files/" + fileId + ".txt");
+
+    //     File file = new File(pathFile);
+
+    //     ArrayList<String> snippetCodes = new ArrayList<String>();
+    //     ArrayList<Integer> lines = new ArrayList<Integer>();
+
+    //     ResolvedFile resolvedFile = new ResolvedFile(queries, "", "", lines, snippetCodes);
+    //     String codeBlock = "";
+
+    //     // System.out.println();
+    //     try {
+    //         List<String> addedJars = getNeededJars(file);
+    //         for (int i = 0; i < addedJars.size(); i++) {
+    //             try {
+    //                 TypeSolver jarTypeSolver = JarTypeSolver.getJarTypeSolver(addedJars.get(i));
+    //                 synchronizedTypeSolver.add(jarTypeSolver);
+    //             } catch (Exception e) {
+    //                 System.out.println("=== Package corrupt! ===");
+    //                 System.out.println("Corrupted jars: " + addedJars.get(i));
+    //                 System.out.println("Please download the latest jar manually from maven repository!");
+    //                 System.out.println("File location: " + file.toString());
+    //             }
+    //         }
+    //         StaticJavaParser.getConfiguration().setSymbolResolver(new JavaSymbolSolver(synchronizedTypeSolver.getTypeSolver()));
+    //         CompilationUnit cu;
+    //         cu = StaticJavaParser.parse(file);
+
+            
+    //         ArrayList<Boolean> isMethodMatch = new ArrayList<Boolean>();
+    //         ArrayList<Boolean> isResolved = new ArrayList<Boolean>();
+    //         ArrayList<Boolean> isResolvedAndParameterMatch = new ArrayList<Boolean>();
+
+    //         for (int i = 0; i < queries.size(); i++) {
+    //             isMethodMatch.add(false);
+    //             isResolved.add(false);
+    //             isResolvedAndParameterMatch.add(false);
+    //         }
+            
+            
+    //         for (int i = 0; i < queries.size(); i++) {
+    //             final int index = i;
+    //             Query query = queries.get(index);
+    //             ArrayList<MethodCallExpr> methodCallExprs = (ArrayList<MethodCallExpr>) cu.findAll(MethodCallExpr.class);
+            
+    //             for (int j = 0; j < methodCallExprs.size(); j++) {
+    //                 MethodCallExpr mce = methodCallExprs.get(j);
+                    
+    //                 if (mce.getName().toString().equals(query.getMethod())
+    //                         && mce.getArguments().size() == query.getArguments().size()) {
+                                
+    //                     isMethodMatch.set(index, true);
+    //                     try {
+    //                         ResolvedMethodDeclaration resolvedMethodDeclaration = mce.resolve();
+                            
+    //                         String fullyQualifiedName = resolvedMethodDeclaration.getPackageName() + "."
+    //                                 + resolvedMethodDeclaration.getClassName();   
+                                    
+    //                         //System.out.println("MCE: " + fullyQualifiedName);
+
+                            
+    //                         isResolved.set(index, true);
+    //                         boolean isArgumentTypeMatch = true;
+    //                         // for (int k = 0; k < resolvedMethodDeclaration.getNumberOfParams(); k++) {
+    //                         //     System.out.println(resolvedMethodDeclaration.getParam(k).describeType());
+    //                         //     System.out.println(query.getArguments().get(k));
+    //                         //     if (!query.getArguments().get(k)
+    //                         //             .equals(resolvedMethodDeclaration.getParam(k).describeType())) {
+    //                         //         isArgumentTypeMatch = false;
+    //                         //         break;
+    //                         //     }
+    //                         // }
+
+
+    //                         if (isArgumentTypeMatch
+    //                                 && fullyQualifiedName.equals(queries.get(index).getFullyQualifiedName())) {
+    //                             isResolvedAndParameterMatch.set(index, true);
+    //                             lines.add(mce.getBegin().get().line);
+    //                             break;
+    //                         }
+    //                     } catch (UnsolvedSymbolException unsolvedSymbolException) {
+    //                         isResolved.set(index, false);
+    //                     }
+    //                 }
+    //             }
+    //         }
+
+
+    //         boolean isSuccess = true;
+            
+    //         for (int i = 0; i < queries.size(); i++) {
+    //             //System.out.println("Query " + (i + 1) + ": " + queries.get(i));
+    //             if (isMethodMatch.get(i)) {
+    //                 if (isResolved.get(i)) {
+    //                     if (isResolvedAndParameterMatch.get(i)) {
+    //                         //System.out.println("Resolved and match argument type");
+    //                     } else {
+    //                         isSuccess = false;
+    //                         System.out.println("Resolved but argument type doesn't match :" + queries.get(i).getArguments());
+    //                     }
+    //                 } else {
+    //                     isSuccess = false;
+    //                     System.out.println("Can't resolve :" + queries.get(i).getMethod());
+    //                 }
+    //             } else {
+    //                 isSuccess = false;
+    //                 System.out.println("No method match :" + queries.get(i).getMethod());
+    //             }
+    //         }
+
+    //         if (isSuccess) {
+    //             resolvedFile.setPathFile(pathFile);
+    //             resolvedFile.setLines(lines);
+    //             resolvedFile.setCodes(getSnippetCode(pathFile, lines));
+    //             //System.out.println("=== SUCCESS ===");
+
+    //             Integer startLine =  0;  
+    //             Integer endLine = 0;
+    //             Boolean foundinner = false;
+    //             for (TypeDeclaration typeDec : cu.getTypes()) {
+    //                 List<BodyDeclaration> members = typeDec.getMembers();
+    //                 if (members != null) {
+    //                     for (BodyDeclaration member : members) {
+    //                         if (member.isClassOrInterfaceDeclaration()) {
+    //                             ClassOrInterfaceDeclaration cl = (ClassOrInterfaceDeclaration) member;
+    //                             List<BodyDeclaration<?>> members2 = cl.getMembers();
+
+    //                             if (members2 != null) {
+    //                                 for (BodyDeclaration member2 : members2) {
+    //                                     if (member2.isMethodDeclaration()) {
+    //                                         MethodDeclaration field = (MethodDeclaration) member2;
+    //                                         startLine =  field.getBegin().get().line;  
+    //                                         endLine = field.getEnd().get().line;
+    //                                         Integer lineNumber = lines.get(0);
+    //                                         if (startLine <= lineNumber && lineNumber <= endLine) {
+    //                                             foundinner = true;
+    //                                             // (field.getComment());
+    //                                             // System.out.println(field.getDeclarationAsString() + field.getBody());
+    //                                             codeBlock =field.getComment() + field.getDeclarationAsString() + field.getBody();
+    //                                             break;
+    //                                         }
+    //                                     }
+    //                                 }
+    //                             }
+    //                         }
+    //                         if (member.isMethodDeclaration() & !foundinner) {
+    //                             MethodDeclaration field = (MethodDeclaration) member;
+    //                             startLine =  field.getBegin().get().line;  
+    //                             endLine = field.getEnd().get().line;
+    //                             Integer lineNumber = lines.get(0);
+    //                             if (startLine <= lineNumber && lineNumber <= endLine) {
+    //                                 // System.out.println(startLine);
+    //                                 // System.out.println(endLine);
+    //                                 codeBlock = field.getComment() + field.getDeclarationAsString() + field.getBody();
+    //                                 // System.out.println(field.getComment());
+    //                                 // System.out.println(field.getDeclarationAsString() + field.getBody());
+    //                                 break;
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+
+    //             // ArrayList<MethodCallExpr> methodCallExprs = (ArrayList<MethodCallExpr>) cu.findAll(MethodCallExpr.class);
+    //             // for (int j = 0; j < methodCallExprs.size(); j++) {
+    //             //     MethodCallExpr mce = methodCallExprs.get(j);
+    //             //     Integer mceLine = mce.getBegin().get().line;
+    //             //         //System.out.println("MCE2: " + mce);
+    //             //         try {                          
+    //             //             if (startLine <= mceLine && mceLine <= endLine) {
+    //             //                 System.out.println(startLine);
+    //             //                 System.out.println(mceLine);
+    //             //                 System.out.println(endLine);
+    //             //                 ResolvedMethodDeclaration resolvedMethodDeclaration = mce.resolve();
+    //             //                 System.out.println(resolvedMethodDeclaration.getQualifiedSignature());
+    //             //             }
+    //             //         } catch (Throwable t) {
+    //             //             System.out.println("mce_test");
+    //             //             t.printStackTrace();
+    //             //         }
+    //             //     }
+
+    //             if (!codeBlock.isEmpty()) {
+    //                 codeBlock = codeBlock.replace("\"", "'");
+    //                 codeBlock = "\"" + codeBlock + "\"";
+    //                 methodInfoResult.add(codeBlock);
+    //             }
+
+    //         } else {
+    //             //System.out.println("File location: " + file.toString());
+    //         }
+
+    //     } catch (ParseProblemException parseProblemException) {
+    //         System.out.println("=== Parse Problem Exception in Type Resolution ===");
+    //         System.out.println("File location: " + pathFile);
+    //     } catch (RuntimeException runtimeException) {
+    //         System.out.println("=== Runtime Exception in Type Resolution ===");
+    //         System.out.println("File location: " + pathFile + runtimeException.getMessage());
+    //     } catch (IOException io) {
+    //         System.out.println("=== IO Exception in Type Resolution ===");
+    //         System.out.println("File location: " + pathFile);
+    //     }
+
+    //     return resolvedFile;
+
+    // }
+
+    // private static void writeToFile() {
+    //     try (PrintWriter writer = new PrintWriter(new File(DATA_LOCATION + "result/" + "doc.csv"))) {
+
+    //         for (int i = 0; i < lRestult.size(); i++) {
+    //             ArrayList<String> resultInfo = lRestult.get(i);
+    //             StringBuilder sb = new StringBuilder();
+
+    //             for (int j = 0; j < resultInfo.size(); j++) {
+    //                 String value = resultInfo.get(j);
+    //                 sb.append(value);
+    //                 if (j != resultInfo.size() - 1) {
+    //                     sb.append(',');
+    //                 }
+    //             }
+    //             sb.append('\n');
+    //             writer.write(sb.toString());
+    //         }
+
+    //         System.out.println("done!");
+      
+    //       } catch (FileNotFoundException e) {
+    //         System.out.println(e.getMessage());
+    //       } 
+
+    // }
+
+}
+
+
+/*
+    <go to your project directory>
+
+    mvn clean compile assembly:single
+
+    java -cp target/code-parse-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.parse.App
+*/
+
+
+// MethodCallExpr and MethodDeclaration
